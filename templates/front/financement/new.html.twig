@@ -1,0 +1,71 @@
+{% extends 'front/base_client.html.twig' %}
+
+{% block title %}Demande de Financement{% endblock %}
+
+{% block body %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white p-4">
+                    <h2 class="fw-bold mb-0">Nouvelle Demande</h2>
+                </div>
+                <div class="card-body p-4">
+                    {% if selected_offre %}
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle me-2"></i>Vous postulez pour l'offre : <strong>{{ selected_offre.titre }}</strong>
+                        </div>
+                    {% endif %}
+
+                    <form method="post" enctype="multipart/form-data">
+                        {% if selected_offre %}
+                            <input type="hidden" name="offre_id" value="{{ selected_offre.id }}">
+                        {% endif %}
+
+                        <div class="mb-3">
+                            <label for="type_dmd" class="form-label fw-bold">Type de financement</label>
+                            <select name="type_dmd" id="type_dmd" class="form-select">
+                                <option value="Prêt Personnel">Prêt Personnel</option>
+                                <option value="Crédit Immobilier">Crédit Immobilier</option>
+                                <option value="Crédit Auto">Crédit Auto</option>
+                                <option value="Financement Projet">Financement Projet</option>
+                            </select>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="montant" class="form-label fw-bold">Montant (DT)</label>
+                                <input type="number" name="montant" id="montant" class="form-control" value="{{ app.request.query.get('montant') }}" min="100" step="0.01" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="duree" class="form-label fw-bold">Durée (Mois)</label>
+                                <input type="number" name="duree" id="duree" class="form-control" value="{{ app.request.query.get('duree') }}" min="1" max="360" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="objet" class="form-label fw-bold">Objet du financement / Description du projet</label>
+                            <textarea name="objet" id="objet" rows="4" class="form-control" required minlength="10" placeholder="Décrivez votre besoin..."></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="documents" class="form-label fw-bold">Documents justificatifs (PDF, Images)</label>
+                            <input type="file" name="documents[]" id="documents" class="form-control" multiple accept=".pdf,.jpg,.jpeg,.png">
+                            <div class="form-text">Vous pouvez sélectionner plusieurs fichiers (Bulletin de paie, CIN, Promesse de vente...)</div>
+                        </div>
+
+                        <div class="alert alert-warning small">
+                            <i class="bi bi-exclamation-circle me-2"></i>En soumettant cette demande, vous acceptez que la banque consulte votre historique financier.
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">Soumettre la demande</button>
+                            <a href="{{ path('client_financement_index') }}" class="btn btn-outline-secondary">Annuler</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

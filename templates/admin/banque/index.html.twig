@@ -1,0 +1,343 @@
+{% extends 'admin/base_admin.html.twig' %}
+
+{% block body %}
+<style>
+html {
+    scroll-behavior: smooth;
+}
+    .bb-wrap { max-width: 1200px; margin: 0 auto; }
+    .bb-head { display:flex; align-items:flex-end; justify-content:space-between; gap:16px; margin-bottom:16px; }
+    .bb-title { margin:0; font-size:28px; font-weight:800; }
+    .bb-sub { color:#6b7280; margin:6px 0 0 0; }
+    .bb-card { background:#fff; border-radius:16px; box-shadow:0 8px 26px rgba(0,0,0,.06); }
+    .bb-card .card-body { padding:18px; }
+    .bb-logo { width:34px; height:34px; object-fit:contain; border-radius:10px; border:1px solid #eee; background:#fff; }
+    .btn-pill { border-radius:999px; }
+    .bb-section { margin-top:18px; }
+    .bb-section-title { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:10px; }
+    .bb-section-title h2 { margin:0; font-size:18px; font-weight:800; }
+    .table td, .table th { vertical-align: middle; }
+
+    /* Toolbar recherche/tri */
+    .bb-tools { display:flex; gap:12px; flex-wrap:wrap; align-items:center; margin-bottom:14px; }
+    .bb-tools .form-control, .bb-tools .form-select { border-radius:12px; min-height:42px; }
+    .bb-tools .btn { border-radius: 999px;
+    height: 42px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 18px;
+    line-height: 1; }
+    
+
+    /* Pagination (compatible bootstrap/knp) */
+    .bb-pagination { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+    .bb-pagination .page-link {
+        border-radius:999px !important;
+        padding:.45rem .8rem;
+        min-width:42px;
+        text-align:center;
+        border-color:#e5e7eb;
+        color:#111827;
+    }
+    .bb-pagination .page-item.active .page-link { font-weight:700; }
+    .bb-pagination .page-item.disabled .page-link { opacity:.55; }
+</style>
+
+{# --- Banque sélectionnée (le controller fournit selected_banque) --- #}
+{% set selectedId = app.request.query.get('banque') %}
+{% set selectedBanqueObj = selected_banque|default(null) %}
+
+{# --- Agences: c'est une pagination object (ou null) --- #}
+{% set agencesList = agences|default(null) %}
+
+{# -----------------------------
+   PARAMS BANQUES (selon controller)
+   q / sort / dir / bp
+   ----------------------------- #}
+{% set q    = app.request.query.get('q')|default('') %}
+{% set sort = app.request.query.get('sort')|default('id') %}
+{% set dir  = app.request.query.get('dir')|default('asc') %}
+
+{# -----------------------------
+   PARAMS AGENCES (selon controller)
+   aq / asort / adir / ap
+   ----------------------------- #}
+{% set aq    = app.request.query.get('aq')|default('') %}
+{% set asort = app.request.query.get('asort')|default('id') %}
+{% set adir  = app.request.query.get('adir')|default('asc') %}
+
+<div class="bb-wrap">
+    <div class="bb-head">
+        <div>
+            <h1 class="bb-title">Gestion des banques</h1>
+            <p class="bb-sub">Liste des banques + gestion des agences par banque.</p>
+        </div>
+        <div>
+            <a class="btn btn-primary btn-pill" href="{{ path('admin_banque_new') }}">+ Ajouter une banque</a>
+        </div>
+    </div>
+
+    {# --- Recherche + tri BANQUES --- #}
+    <div class="bb-card mb-3">
+        <div class="card-body">
+            <form method="get" class="bb-tools">
+                {# garder banque sélectionnée #}
+                {% if selectedId %}
+                    <input type="hidden" name="banque" value="{{ selectedId }}">
+                {% endif %}
+
+                {# quand on applique un filtre, on revient page 1 côté banques #}
+                <input type="hidden" name="bp" value="1">
+
+                {# conserver aussi les params agences si la section est ouverte (sinon tu perds les filtres en haut) #}
+                {% if selectedId %}
+                    <input type="hidden" name="aq" value="{{ aq }}">
+                    <input type="hidden" name="asort" value="{{ asort }}">
+                    <input type="hidden" name="adir" value="{{ adir }}">
+                    <input type="hidden" name="ap" value="{{ app.request.query.get('ap')|default(1) }}">
+                {% endif %}
+
+                <input class="form-control" style="max-width:420px"
+                       name="q" value="{{ q }}"
+                       placeholder="Rechercher une banque (nom, email, téléphone, site)…">
+
+                <select class="form-select" style="max-width:220px" name="sort">
+                    <option value="id"     {{ sort == 'id' ? 'selected' : '' }}>Trier par ID</option>
+                    <option value="nom"    {{ sort == 'nom' ? 'selected' : '' }}>Trier par Nom</option>
+                    <option value="statut" {{ sort == 'statut' ? 'selected' : '' }}>Trier par Statut</option>
+                </select>
+
+                <select class="form-select" style="max-width:220px" name="dir">
+                    <option value="asc"  {{ dir == 'asc' ? 'selected' : '' }}>Ascendant</option>
+                    <option value="desc" {{ dir == 'desc' ? 'selected' : '' }}>Descendant</option>
+                </select>
+
+                <button class="btn btn-outline-primary" type="submit">Appliquer</button>
+
+                <a class="btn btn-outline-secondary"
+                   href="{{ path('admin_banques_index', selectedId ? {banque: selectedId} : {}) }}">
+                    Réinitialiser
+                </a>
+            </form>
+        </div>
+    </div>
+
+    {# --- TABLE BANQUES --- #}
+    <div class="bb-card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
+                    <tr>
+                        <th>Logo</th>
+                        <th>ID</th>
+                        <th>Nom</th>
+                        <th>Email</th>
+                        <th>Téléphone</th>
+                        <th>Site web</th>
+                        <th>Statut</th>
+                        <th style="min-width: 320px;">Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for banque in banques %}
+                        <tr>
+                            <td>
+                                {% if banque.logo %}
+                                    <img class="bb-logo" src="{{ asset(banque.logo) }}" alt="Logo {{ banque.nomBq }}">
+                                {% else %}
+                                    <div class="bb-logo d-flex align-items-center justify-content-center" style="color:#adb5bd;">—</div>
+                                {% endif %}
+                            </td>
+                            <td>{{ banque.id }}</td>
+                            <td><strong>{{ banque.nomBq }}</strong></td>
+                            <td>{{ banque.emailBq }}</td>
+                            <td>{{ banque.telephoneBq }}</td>
+                            <td>
+                                {% if banque.siteWeb %}
+                                    <a href="{{ banque.siteWeb }}" target="_blank" rel="noopener">{{ banque.siteWeb }}</a>
+                                {% else %}
+                                    <span class="text-muted">—</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if banque.statut == 'active' %}
+                                    <span class="badge bg-success">Active</span>
+                                {% elseif banque.statut == 'pending' %}
+                                    <span class="badge bg-warning text-dark">En attente</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Rejetée</span>
+                                {% endif %}
+                            </td>
+                            <td>
+    <div class="d-flex flex-wrap gap-2">
+        <a class="btn btn-sm btn-outline-secondary btn-pill"
+           href="{{ path('admin_banque_show', {id: banque.id}) }}">Voir</a>
+
+        <a class="btn btn-sm btn-outline-primary btn-pill"
+           href="{{ path('admin_banque_edit', {id: banque.id}) }}">Modifier</a>
+
+        <a class="btn btn-sm btn-outline-dark btn-pill"
+           href="{{ path('admin_banques_index', {
+               banque: banque.id,
+               q: q, sort: sort, dir: dir,
+               aq: '', asort: 'id', adir: 'asc',
+               ap: 1
+           }) ~ '#section-agences' }}">
+            Agences
+        </a>
+
+        <form method="post" action="{{ path('admin_banque_delete', {id: banque.id}) }}" class="d-inline">
+            <input type="hidden" name="_token" value="{{ csrf_token('delete_banque_' ~ banque.id) }}">
+            <button class="btn btn-sm btn-danger btn-pill"
+                    onclick="return confirm('Supprimer la banque ?')">Supprimer</button>
+        </form>
+    </div>
+</td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="8" class="text-center text-muted py-4">Aucune banque.</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {% if banques is defined and banques.pageCount is defined and banques.pageCount > 1 %}
+                <div class="d-flex justify-content-end mt-3">
+                    {{ knp_pagination_render(banques, 'admin/_pagination.html.twig') }}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {# --- SECTION AGENCES --- #}
+    {% if selectedBanqueObj or selectedId %}
+        <div id="section-agences" class="bb-section">
+            <div class="bb-card">
+                <div class="card-body">
+                    <div class="bb-section-title">
+                        <h2>
+                            Agences de
+                            {% if selectedBanqueObj %}
+                                <strong>{{ selectedBanqueObj.nomBq }}</strong>
+                            {% else %}
+                                <strong>Banque #{{ selectedId }}</strong>
+                            {% endif %}
+                        </h2>
+
+                        {% if selectedBanqueObj %}
+                            <a class="btn btn-primary btn-pill"
+                               href="{{ path('admin_banque_agence_new', {banque: selectedBanqueObj.id}) }}">+ Ajouter une agence</a>
+                        {% endif %}
+                    </div>
+
+                    {# --- Recherche + tri AGENCES --- #}
+                    <form method="get" class="bb-tools mb-3">
+                        {% if selectedId %}
+                            <input type="hidden" name="banque" value="{{ selectedId }}">
+                        {% endif %}
+
+                        {# conserver les filtres banques #}
+                        <input type="hidden" name="q" value="{{ q }}">
+                        <input type="hidden" name="sort" value="{{ sort }}">
+                        <input type="hidden" name="dir" value="{{ dir }}">
+                        <input type="hidden" name="bp" value="{{ app.request.query.get('bp')|default(1) }}">
+
+                        {# quand on applique un filtre agence, on revient page 1 côté agences #}
+                        <input type="hidden" name="ap" value="1">
+
+                        <input class="form-control" style="max-width:420px"
+                               name="aq" value="{{ aq }}"
+                               placeholder="Rechercher une agence (nom, email, téléphone)…">
+
+                        <select class="form-select" style="max-width:220px" name="asort">
+                            <option value="id"  {{ asort == 'id' ? 'selected' : '' }}>Trier par ID</option>
+                            <option value="nom" {{ asort == 'nom' ? 'selected' : '' }}>Trier par Nom</option>
+                        </select>
+
+                        <select class="form-select" style="max-width:220px" name="adir">
+                            <option value="asc"  {{ adir == 'asc' ? 'selected' : '' }}>Ascendant</option>
+                            <option value="desc" {{ adir == 'desc' ? 'selected' : '' }}>Descendant</option>
+                        </select>
+
+                        <button class="btn btn-outline-primary" type="submit">Appliquer</button>
+
+                        {# reset agences seulement, en gardant banque + filtres banques #}
+                        <a class="btn btn-outline-secondary"
+                           href="{{ path('admin_banques_index', {
+                               banque: selectedId,
+                               q: q, sort: sort, dir: dir,
+                               aq: '', asort: 'id', adir: 'asc',
+                               ap: 1
+                           }) }}">
+                            Réinitialiser
+                        </a>
+                    </form>
+
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nom</th>
+                                <th>Téléphone</th>
+                                <th>Email</th>
+                                <th style="min-width: 260px;">Actions</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% if agencesList %}
+                                {% for agence in agencesList %}
+                                    <tr>
+                                        <td>{{ agence.id }}</td>
+                                        <td><strong>{{ agence.nomAg }}</strong></td>
+                                        <td>{{ agence.telephone ?: '—' }}</td>
+                                        <td>{{ agence.email ?: '—' }}</td>
+                                        <td class="d-flex flex-wrap gap-2">
+                                            {% if selectedBanqueObj %}
+                                                <a class="btn btn-sm btn-outline-secondary btn-pill"
+                                                   href="{{ path('admin_banque_agence_show', {banque: selectedBanqueObj.id, agence: agence.id}) }}">Voir</a>
+
+                                                <a class="btn btn-sm btn-outline-primary btn-pill"
+                                                   href="{{ path('admin_banque_agence_edit', {banque: selectedBanqueObj.id, agence: agence.id}) }}">Modifier</a>
+
+                                                <form method="post"
+                                                      action="{{ path('admin_banque_agence_delete', {banque: selectedBanqueObj.id, agence: agence.id}) }}"
+                                                      class="d-inline">
+                                                    <input type="hidden" name="_token" value="{{ csrf_token('delete_agence_' ~ agence.id) }}">
+                                                    <button class="btn btn-sm btn-danger btn-pill"
+                                                            onclick="return confirm('Supprimer cette agence ?')">Supprimer</button>
+                                                </form>
+                                            {% else %}
+                                                <span class="text-muted">Routes agence indisponibles sans banque.</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% else %}
+                                    <tr>
+                                        <td colspan="5" class="text-center text-muted py-4">Aucune agence pour le moment.</td>
+                                    </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted py-4">Aucune agence pour le moment.</td>
+                                </tr>
+                            {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    {% if agencesList is defined and agencesList and agencesList.pageCount is defined and agencesList.pageCount > 1 %}
+                        <div class="d-flex justify-content-end mt-3">
+                            {{ knp_pagination_render(agencesList, 'admin/_pagination.html.twig') }}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

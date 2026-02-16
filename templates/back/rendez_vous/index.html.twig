@@ -1,0 +1,148 @@
+{% extends 'back/base_agent.html.twig' %}
+
+{% block title %}Rendez-vous - Agent{% endblock %}
+
+{% block body %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold">Gestion des Rendez-vous</h2>
+        <p class="text-muted mb-0">{{ banque.nomBq }}</p>
+    </div>
+    <a href="{{ path('agent_rdv_today') }}" class="btn btn-info text-white">
+        <i class="bi bi-calendar-event me-2"></i>Aujourd'hui
+    </a>
+</div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <form id="search-form" class="row g-3">
+            <div class="col-md-4">
+                <div class="input-group">
+                    <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+                    <input type="text" name="search" id="search-input" class="form-control border-start-0" placeholder="Client, Référence...">
+                </div>
+            </div>
+            <div class="col-md-3">
+                <select name="statut" id="status-filter" class="form-select">
+                    <option value="">Tous les statuts</option>
+                    <option value="pending">En attente</option>
+                    <option value="confirmed">Confirmé</option>
+                    <option value="completed">Traité/Fini</option>
+                    <option value="cancelled">Annulé</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <input type="date" name="date" id="date-filter" class="form-control">
+            </div>
+            <div class="col-md-2">
+                <button type="button" id="reset-btn" class="btn btn-outline-secondary w-100">
+                    <i class="bi bi-x-lg"></i> Reset
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body p-0" id="rdv-table-container">
+        {% include 'back/rendez_vous/_table.html.twig' %}
+    </div>
+</div>
+
+<!-- Delay Modal -->
+<div class="modal fade" id="delayModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="delay-form" method="post">
+                <div class="modal-header">
+                    <h5 class="modal-title">Reporter le rendez-vous</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Nouvelle Date</label>
+                        <input type="date" name="date_rdv" class="form-control" required min="{{ 'now'|date('Y-m-d') }}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Nouvelle Heure</label>
+                        <select name="heure_rdv" class="form-select" required>
+                            <option value="08:00">08:00</option>
+                            <option value="09:00">09:00</option>
+                            <option value="10:00">10:00</option>
+                            <option value="11:00">11:00</option>
+                            <option value="14:00">14:00</option>
+                            <option value="15:00">15:00</option>
+                            <option value="16:00">16:00</option>
+                            <option value="17:00">17:00</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-warning text-white">Confirmer le report</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Search Logic
+        const searchInput = document.getElementById('search-input');
+        const statusFilter = document.getElementById('status-filter');
+        const dateFilter = document.getElementById('date-filter');
+        const resetBtn = document.getElementById('reset-btn');
+        const container = document.getElementById('rdv-table-container');
+        let timeout = null;
+
+        function performSearch() {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => {
+                const searchValue = searchInput.value;
+                const statusValue = statusFilter.value;
+                const dateValue = dateFilter.value;
+                
+                const url = new URL(window.location.href);
+                if (searchValue) url.searchParams.set('search', searchValue); else url.searchParams.delete('search');
+                if (statusValue) url.searchParams.set('statut', statusValue); else url.searchParams.delete('statut');
+                if (dateValue) url.searchParams.set('date', dateValue); else url.searchParams.delete('date');
+
+                fetch(url, {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                })
+                .then(response => response.text())
+                .then(html => {
+                    container.innerHTML = html;
+                });
+            }, 300);
+        }
+
+        searchInput.addEventListener('input', performSearch);
+        statusFilter.addEventListener('change', performSearch);
+        dateFilter.addEventListener('change', performSearch);
+
+        resetBtn.addEventListener('click', () => {
+            searchInput.value = '';
+            statusFilter.value = '';
+            dateFilter.value = '';
+            performSearch();
+        });
+
+        // Delay Modal Logic
+        const delayModal = document.getElementById('delayModal');
+        delayModal.addEventListener('show.bs.modal', function (event) {
+            const button = event.relatedTarget;
+            const id = button.getAttribute('data-rdv-id');
+            const date = button.getAttribute('data-rdv-date');
+            const time = button.getAttribute('data-rdv-time');
+
+            const form = document.getElementById('delay-form');
+            form.action = "{{ path('agent_rdv_delay', {id: 'RDV_ID'}) }}".replace('RDV_ID', id);
+            
+            form.querySelector('[name="date_rdv"]').value = date;
+            form.querySelector('[name="heure_rdv"]').value = time;
+        });
+    });
+</script>
+{% endblock %}

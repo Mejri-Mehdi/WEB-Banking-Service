@@ -1,0 +1,38 @@
+        {% for financement in financements %}
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 shadow-sm border-{{ financement.statut == 'approved' ? 'success' : (financement.statut == 'rejected' ? 'danger' : 'warning') }}">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between mb-3">
+                            <span class="badge {{ financement.statut == 'approved' ? 'bg-success' : (financement.statut == 'rejected' ? 'bg-danger' : 'bg-warning text-dark') }}">
+                                {{ financement.statut|capitalize }}
+                            </span>
+                            <small class="text-muted">{{ financement.dateDemande|date('d/m/Y') }}</small>
+                        </div>
+                        <h5 class="card-title fw-bold">{{ financement.typeDmd }}</h5>
+                        <h3 class="text-primary fw-bold mb-3">{{ financement.montantDemande }} DT</h3>
+                        <p class="card-text text-muted mb-4">{{ financement.objetFinancement|slice(0, 100) }}...</p>
+                        
+                        <div class="d-flex justify-content-between text-muted small border-top pt-3">
+                            <div><i class="bi bi-hourglass-split me-1"></i>{{ financement.dureeMois }} mois</div>
+                            {% if financement.offre %}
+                                <div><i class="bi bi-tag me-1"></i>{{ financement.offre.titre }}</div>
+                            {% endif %}
+                        </div>
+
+                        {% if financement.statut == 'rejected' and financement.commentaireAgent %}
+                            <div class="alert alert-danger mt-3 mb-0 small">
+                                <strong>Motif:</strong> {{ financement.commentaireAgent }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <div class="col-12 text-center py-5">
+                <div class="text-muted mb-3">
+                    <i class="bi bi-wallet2 display-1"></i>
+                </div>
+                <h3>Aucune demande correspondante</h3>
+                <p>Essayez une autre recherche.</p>
+            </div>
+        {% endfor %}

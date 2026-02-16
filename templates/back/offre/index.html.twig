@@ -1,0 +1,41 @@
+{% extends 'back/base_agent.html.twig' %}
+
+{% block title %}Offres - Agent{% endblock %}
+
+{% block body %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold">Gestion des Offres</h2>
+        <p class="text-muted mb-0">{{ banque.nomBq }}</p>
+    </div>
+    <a href="{{ path('agent_offre_new') }}" class="btn btn-primary">
+        <i class="bi bi-plus-circle me-2"></i>Nouvelle Offre
+    </a>
+</div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <div class="input-group">
+            <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+            <input type="text" id="params-search" class="form-control border-start-0" placeholder="Rechercher une offre...">
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body p-0">
+        {% include 'back/offre/_table.html.twig' %}
+    </div>
+</div>
+<script src="{{ asset('js/search.js') }}"></script>
+<script>
+    // Initialize search for this specific page
+    const searchInput = document.getElementById('params-search');
+    const resultsContainer = document.querySelector('.card-body.p-0'); // Target the container of the table
+    
+    if (searchInput && resultsContainer) {
+        searchInput.id = 'search-input'; // Ensure ID matches search.js expectation or update search.js
+        resultsContainer.id = 'search-results';
+    }
+</script>
+{% endblock %}

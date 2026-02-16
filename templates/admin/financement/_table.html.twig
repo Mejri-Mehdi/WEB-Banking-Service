@@ -1,0 +1,50 @@
+<div class="table-responsive">
+    <table class="table table-hover">
+        <thead class="table-dark">
+            <tr>
+                <th>#</th>
+                <th>Client</th>
+                <th>Banque</th>
+                <th>Montant</th>
+                <th>Durée</th>
+                <th>Objet</th>
+                <th>Date demande</th>
+                <th>Statut</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for fin in financements %}
+                <tr>
+                    <td>{{ fin.id }}</td>
+                    <td>
+                        <strong>{{ fin.client.nom }} {{ fin.client.prenom }}</strong><br>
+                        <small class="text-muted">{{ fin.client.email }}</small>
+                    </td>
+                    <td>{{ fin.banque.nomBq }}</td>
+                    <td><strong class="text-success">{{ fin.formattedMontant }}</strong></td>
+                    <td>{{ fin.dureeMois }} mois</td>
+                    <td>
+                        <small>{{ fin.objetFinancement|length > 50 ? fin.objetFinancement|slice(0, 50) ~ '...' : fin.objetFinancement }}</small>
+                    </td>
+                    <td>{{ fin.dateDemande|date('d/m/Y H:i') }}</td>
+                    <td>
+                        {% if fin.statut == 'pending' %}
+                            <span class="badge bg-warning">En attente</span>
+                        {% elseif fin.statut == 'approved' %}
+                            <span class="badge bg-success">Approuvé</span>
+                        {% else %}
+                            <span class="badge bg-danger">Rejeté</span>
+                        {% endif %}
+                    </td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="8" class="text-center py-5">
+                        <i class="bi bi-cash-coin text-muted" style="font-size: 4rem;"></i>
+                        <p class="text-muted mt-3">Aucune demande de financement trouvée</p>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>

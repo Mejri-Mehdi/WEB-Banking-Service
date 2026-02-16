@@ -1,0 +1,49 @@
+{% extends 'admin/base_admin.html.twig' %}
+
+{% block body %}
+<style>
+    .bb-wrap { max-width: 980px; margin: 0 auto; }
+    .bb-card { background:#fff; border-radius:16px; box-shadow:0 8px 26px rgba(0,0,0,.06); padding:22px; }
+    .bb-title { font-size:28px; margin:0; font-weight:800; }
+    .bb-sub { color:#6b7280; margin:6px 0 0 0; }
+    .bb-kv { margin-top:16px; display:grid; grid-template-columns: 180px 1fr; gap:10px 16px; }
+    .bb-k { color:#6b7280; }
+    .bb-actions { display:flex; gap:10px; margin-top:18px; }
+    .bb-actions .btn { border-radius:999px; padding:10px 16px; }
+    @media (max-width: 700px) {
+        .bb-kv { grid-template-columns: 1fr; }
+    }
+</style>
+
+<div class="bb-wrap">
+    <h1 class="bb-title">{{ agence.nomAg ?: 'Agence' }}</h1>
+    <p class="bb-sub">Banque: <strong>{{ banque.nomBq }}</strong> (ID {{ banque.id }}) · Agence ID {{ agence.id }}</p>
+
+    <div class="bb-card">
+        <div class="bb-kv">
+            <div class="bb-k">Téléphone</div>
+            <div>{{ agence.telephone ?: '—' }}</div>
+
+            <div class="bb-k">Email</div>
+            <div>{{ agence.email ?: '—' }}</div>
+
+            <div class="bb-k">Adresse</div>
+            <div>{{ agence.adresseAg ?: '—' }}</div>
+
+            <div class="bb-k">Horaires</div>
+            <div>{{ agence.horaires ?: '—' }}</div>
+        </div>
+
+        <div class="bb-actions">
+            <a class="btn btn-primary" href="{{ path('admin_banque_agence_edit', {banque: banque.id, agence: agence.id}) }}">Modifier</a>
+
+            <form method="post" action="{{ path('admin_banque_agence_delete', {banque: banque.id, agence: agence.id}) }}" class="d-inline">
+                <input type="hidden" name="_token" value="{{ csrf_token('delete_agence_' ~ agence.id) }}">
+                <button class="btn btn-danger" onclick="return confirm('Supprimer cette agence ?')">Supprimer</button>
+            </form>
+
+            <a class="btn btn-secondary" href="{{ path('admin_banques_index', {banque: banque.id}) }}">Retour</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,190 @@
+{% extends 'front/base_client.html.twig' %}
+
+{% block body %}
+<div class="mb-4">
+    <h1 class="mb-3 d-flex align-items-center gap-3">
+        {% if banque.logo %}
+            <img src="{{ asset(banque.logo) }}"
+                 alt="Logo {{ banque.nomBq }}"
+                 style="width:56px;height:56px;object-fit:contain;border-radius:14px;background:#fff;border:1px solid #e9ecef;">
+        {% endif %}
+        <span>
+            <i class="bi bi-building text-primary"></i> {{ banque.nomBq }}
+        </span>
+    </h1>
+    <p class="text-muted">Informations détaillées sur votre banque</p>
+</div>
+
+<div class="row g-4">
+    <div class="col-md-6">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-gradient text-white" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <h5 class="mb-0"><i class="bi bi-info-circle"></i> Informations générales</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="text-muted small">Nom de la banque</label>
+                    <h5 class="mb-0">{{ banque.nomBq }}</h5>
+                </div>
+
+                <div class="mb-3">
+                    <label class="text-muted small">Site web</label>
+                    {% if banque.siteWeb %}
+                        <p class="mb-0">
+                            <a href="{{ banque.siteWeb }}" target="_blank" rel="noopener" class="text-decoration-none">
+                                {{ banque.siteWeb }} <i class="bi bi-box-arrow-up-right"></i>
+                            </a>
+                        </p>
+                    {% else %}
+                        <p class="mb-0 text-muted">—</p>
+                    {% endif %}
+                </div>
+
+                <div class="mb-3">
+                    <label class="text-muted small">Email</label>
+                    <p class="mb-0">
+                        <i class="bi bi-envelope"></i> {{ banque.emailBq ?: '—' }}
+                    </p>
+                </div>
+
+                <div class="mb-3">
+                    <label class="text-muted small">Téléphone</label>
+                    <p class="mb-0">
+                        <i class="bi bi-telephone"></i> {{ banque.telephoneBq ?: '—' }}
+                    </p>
+                </div>
+
+                {% if banque.description %}
+                    <div class="mb-0">
+                        <label class="text-muted small">Description</label>
+                        <p class="text-secondary mb-0">{{ banque.description }}</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-gradient text-white" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                <h5 class="mb-0">
+                    <i class="bi bi-geo-alt"></i>
+                    Agences
+                    ({{ agences.getTotalItemCount ?? (agences|length) }})
+                </h5>
+            </div>
+
+            <div class="card-body d-flex flex-column">
+                {# Recherche + Tri (auto-submit sur changement de tri) #}
+                <form id="agencesFilters" method="get" class="mb-3">
+                    <div class="row g-2 align-items-center">
+                        <div class="col-12 col-md-7">
+                            <div class="input-group">
+                                <span class="input-group-text bg-white">
+                                    <i class="bi bi-search"></i>
+                                </span>
+                                <input
+                                    type="text"
+                                    name="q"
+                                    class="form-control"
+                                    placeholder="Rechercher une agence..."
+                                    value="{{ q|default('')|e }}"
+                                >
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-md-5">
+                            <select id="triSelect" name="t" class="form-select">
+                                <option value="nom_asc"  {{ (t|default('nom_asc') == 'nom_asc')  ? 'selected' : '' }}>Trier par: Nom (A → Z)</option>
+                                <option value="nom_desc" {{ (t|default('nom_asc') == 'nom_desc') ? 'selected' : '' }}>Trier par: Nom (Z → A)</option>
+                            </select>
+                        </div>
+
+                        {# Quand on applique un filtre/tri, on repart page 1 #}
+                        <input type="hidden" name="p" value="1">
+                    </div>
+                </form>
+
+                {% set total = agences.getTotalItemCount ?? (agences|length) %}
+
+                {% if total > 0 %}
+                    <div class="list-group list-group-flush">
+                        {% for agence in agences %}
+                            <div class="list-group-item px-0 border-bottom">
+                                <div class="d-flex align-items-start justify-content-between gap-3">
+                                    <div class="d-flex align-items-start gap-3">
+                                        <div class="bg-primary bg-opacity-10 rounded-circle p-2"
+                                             style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+                                            <i class="bi bi-building text-primary"></i>
+                                        </div>
+
+                                        <div>
+                                            <h6 class="mb-1">{{ agence.nomAg ?: '—' }}</h6>
+
+                                            <div class="text-muted small mb-1">
+                                                <i class="bi bi-telephone"></i>
+                                                {{ agence.telephone ?: '—' }}
+                                            </div>
+
+                                            <div class="text-muted small">
+                                                <i class="bi bi-envelope"></i>
+                                                {{ agence.email ?: '—' }}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <a href="{{ path('client_agence_view', { id: agence.id }) }}"
+                                       class="btn btn-outline-secondary btn-sm"
+                                       title="Voir">
+                                        <i class="bi bi-eye"></i> Voir
+                                    </a>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mt-auto pt-3 d-flex justify-content-end">
+                        {{ knp_pagination_render(agences, 'front/_pagination.html.twig') }}
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-building text-muted" style="font-size: 3rem;"></i>
+                        <p class="text-muted mt-3 mb-0">
+                            {% if q|default('') != '' %}
+                                Aucune agence ne correspond à votre recherche.
+                            {% else %}
+                                Aucune agence disponible pour le moment.
+                            {% endif %}
+                        </p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .bg-gradient {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+</style>
+
+<script>
+    (function () {
+        const form = document.getElementById('agencesFilters');
+        const tri = document.getElementById('triSelect');
+        if (!form || !tri) return;
+
+        // Auto-submit dès qu'on change le tri
+        tri.addEventListener('change', function () {
+            // On force la page 1 en cas de changement
+            const p = form.querySelector('input[name="p"]');
+            if (p) p.value = '1';
+            form.submit();
+        });
+
+        // Bonus: sur Entrée dans la recherche, ça soumet déjà naturellement.
+        // Pas besoin de bouton inutile.
+    })();
+</script>
+{% endblock %}

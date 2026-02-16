@@ -1,0 +1,90 @@
+{# templates/front/_pagination.html.twig #}
+
+{% if pageCount > 1 %}
+    <style>
+        /* Pagination style "propre" (rond, comme admin/agent) */
+        .bb-pagination {
+            gap: 10px;
+        }
+
+        .bb-pagination .page-link {
+            width: 44px;
+            height: 44px;
+            border-radius: 999px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #e5e7eb;
+            background: #fff;
+            color: #111827;
+            font-weight: 600;
+            box-shadow: 0 1px 2px rgba(0,0,0,.03);
+        }
+
+        .bb-pagination .page-item.active .page-link {
+            background: #2563eb;
+            border-color: #2563eb;
+            color: #fff;
+        }
+
+        .bb-pagination .page-item.disabled .page-link {
+            opacity: .45;
+            pointer-events: none;
+            background: #f3f4f6;
+        }
+
+        .bb-pagination .page-link:hover {
+            background: #f9fafb;
+        }
+
+        .bb-pagination .page-item.active .page-link:hover {
+            background: #2563eb;
+        }
+    </style>
+
+    <nav aria-label="Pagination" class="d-flex justify-content-end">
+        <ul class="pagination bb-pagination mb-0">
+            {# Previous #}
+            <li class="page-item {{ previous is defined ? '' : 'disabled' }}">
+                {% if previous is defined %}
+                    <a class="page-link"
+                       rel="prev"
+                       href="{{ path(route, query|merge({ (pageParameterName): previous })) }}"
+                       aria-label="Page précédente">
+                        ‹
+                    </a>
+                {% else %}
+                    <span class="page-link" aria-hidden="true">‹</span>
+                {% endif %}
+            </li>
+
+            {# Pages #}
+            {% for page in pagesInRange %}
+                <li class="page-item {{ page == current ? 'active' : '' }}">
+                    {% if page == current %}
+                        <span class="page-link" aria-current="page">{{ page }}</span>
+                    {% else %}
+                        <a class="page-link"
+                           href="{{ path(route, query|merge({ (pageParameterName): page })) }}">
+                            {{ page }}
+                        </a>
+                    {% endif %}
+                </li>
+            {% endfor %}
+
+            {# Next #}
+            <li class="page-item {{ next is defined ? '' : 'disabled' }}">
+                {% if next is defined %}
+                    <a class="page-link"
+                       rel="next"
+                       href="{{ path(route, query|merge({ (pageParameterName): next })) }}"
+                       aria-label="Page suivante">
+                        ›
+                    </a>
+                {% else %}
+                    <span class="page-link" aria-hidden="true">›</span>
+                {% endif %}
+            </li>
+        </ul>
+    </nav>
+{% endif %}

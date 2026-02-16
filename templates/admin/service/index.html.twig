@@ -1,0 +1,123 @@
+{% extends 'admin/base_admin.html.twig' %}
+
+{% block title %}Services Bancaires - Admin{% endblock %}
+
+{% block body %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold">Supervision des Services</h2>
+        <p class="text-muted mb-0">Gestion et feedback sur les services bancaires</p>
+    </div>
+</div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <form id="search-form" class="row g-3">
+            <div class="col-md-5">
+                <div class="input-group">
+                    <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+                    <input type="text" name="search" id="search-input" class="form-control border-start-0" placeholder="Nom service, Description...">
+                </div>
+            </div>
+            <div class="col-md-3">
+                <select name="disponible" id="status-filter" class="form-select">
+                    <option value="">Tous les statuts</option>
+                    <option value="1">Disponible</option>
+                    <option value="0">Indisponible</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="button" id="reset-btn" class="btn btn-outline-secondary w-100">
+                    <i class="bi bi-x-lg"></i> Reset
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body p-0" id="services-table-container">
+        {% include 'admin/service/_table.html.twig' %}
+    </div>
+</div>
+
+<!-- Feedback Modal -->
+<div class="modal fade" id="feedbackModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="feedback-form" method="post">
+                <div class="modal-header">
+                    <h5 class="modal-title">Feedback Admin sur <span id="modal-service-name" class="fw-bold"></span></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Votre avis / remarque</label>
+                        <textarea name="feedback" class="form-control" rows="4" placeholder="Entrez votre feedback ici..."></textarea>
+                        <div class="form-text">Ce feedback sera visible par l'agent responsable du service.</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-primary">Enregistrer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Search Logic
+        const searchInput = document.getElementById('search-input');
+        const statusFilter = document.getElementById('status-filter');
+        const resetBtn = document.getElementById('reset-btn');
+        const container = document.getElementById('services-table-container');
+        let timeout = null;
+
+        function performSearch() {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => {
+                const searchValue = searchInput.value;
+                const statusValue = statusFilter.value;
+                
+                const url = new URL(window.location.href);
+                if (searchValue) url.searchParams.set('search', searchValue); else url.searchParams.delete('search');
+                if (statusValue) url.searchParams.set('disponible', statusValue); else url.searchParams.delete('disponible');
+
+                fetch(url, {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                })
+                .then(response => response.text())
+                .then(html => {
+                    container.innerHTML = html;
+                });
+            }, 300);
+        }
+
+        searchInput.addEventListener('input', performSearch);
+        statusFilter.addEventListener('change', performSearch);
+
+        resetBtn.addEventListener('click', () => {
+            searchInput.value = '';
+            statusFilter.value = '';
+            performSearch();
+        });
+
+        // Feedback Modal Logic
+        const feedbackModal = document.getElementById('feedbackModal');
+        feedbackModal.addEventListener('show.bs.modal', function (event) {
+            const button = event.relatedTarget;
+            const id = button.getAttribute('data-service-id');
+            const name = button.getAttribute('data-service-name');
+            const feedback = button.getAttribute('data-service-feedback');
+
+            const form = document.getElementById('feedback-form');
+            form.action = "{{ path('admin_service_feedback', {id: 'SERVICE_ID'}) }}".replace('SERVICE_ID', id);
+            
+            document.getElementById('modal-service-name').textContent = name;
+            form.querySelector('[name="feedback"]').value = feedback;
+        });
+    });
+</script>
+{% endblock %}

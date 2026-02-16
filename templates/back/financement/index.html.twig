@@ -1,0 +1,57 @@
+{% extends 'back/base_agent.html.twig' %}
+
+{% block title %}Financements - Agent{% endblock %}
+
+{% block body %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold">Demandes de Financement</h2>
+        <p class="text-muted mb-0">Gérez les demandes de crédit de vos clients</p>
+    </div>
+</div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <ul class="nav nav-pills">
+                    <li class="nav-item">
+                        <a class="nav-link {{ statut_actuel is null ? 'active' : '' }}" href="{{ path('agent_financement_index') }}">Tout</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{ statut_actuel == 'pending' ? 'active' : '' }}" href="{{ path('agent_financement_index', {statut: 'pending'}) }}">En attente</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{ statut_actuel == 'approved' ? 'active' : '' }}" href="{{ path('agent_financement_index', {statut: 'approved'}) }}">Approuvés</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{ statut_actuel == 'rejected' ? 'active' : '' }}" href="{{ path('agent_financement_index', {statut: 'rejected'}) }}">Refusés</a>
+                    </li>
+                </ul>
+            </div>
+            <div class="col-md-4">
+                <div class="input-group">
+                    <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+                    <input type="text" id="params-search" class="form-control border-start-0" placeholder="Rechercher client/montant...">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body p-0" id="search-results">
+        {% include 'back/financement/_table.html.twig' %}
+    </div>
+</div>
+
+<script src="{{ asset('js/search.js') }}"></script>
+<script>
+    const searchInput = document.getElementById('params-search');
+    const resultsContainer = document.getElementById('search-results');
+    
+    if (searchInput && resultsContainer) {
+        searchInput.id = 'search-input';
+    }
+</script>
+{% endblock %}

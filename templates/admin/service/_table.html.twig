@@ -1,0 +1,67 @@
+<div class="table-responsive">
+    <table class="table table-hover align-middle">
+        <thead class="table-light">
+            <tr>
+                <th><i class="bi bi-bank"></i> Banque</th>
+                <th><i class="bi bi-briefcase"></i> Service</th>
+                <th><i class="bi bi-clock"></i> Durée & Priorité</th>
+                <th><i class="bi bi-info-circle"></i> Statut</th>
+                <th><i class="bi bi-chat-left-text"></i> Feedback Admin</th>
+                <th><i class="bi bi-gear"></i> Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for service in services %}
+                <tr>
+                    <td>
+                        <div class="fw-bold">{{ service.banque.nomBq }}</div>
+                        <div class="small text-muted">{{ service.banque.emailBq }}</div>
+                    </td>
+                    <td>
+                        <div class="fw-bold">{{ service.nomService }}</div>
+                        <div class="small text-muted">{{ service.description|length > 40 ? service.description|slice(0, 40) ~ '...' : service.description }}</div>
+                    </td>
+                    <td>
+                        <div>{{ service.dureeEstimee }} min</div>
+                        <span class="badge bg-info text-dark">{{ service.prioriteDefaut|default('Medium')|capitalize }}</span>
+                    </td>
+                    <td>
+                        {% if service.disponible %}
+                            <span class="badge bg-success">Disponible</span>
+                        {% else %}
+                            <span class="badge bg-danger">Indisponible</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if service.adminFeedback %}
+                            <span class="d-inline-block text-truncate" style="max-width: 150px;" title="{{ service.adminFeedback }}">
+                                {{ service.adminFeedback }}
+                            </span>
+                        {% else %}
+                            <span class="text-muted">-</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <button type="button" class="btn btn-sm btn-outline-warning" 
+                                data-bs-toggle="modal" 
+                                data-bs-target="#feedbackModal" 
+                                data-service-id="{{ service.id }}"
+                                data-service-name="{{ service.nomService }}"
+                                data-service-feedback="{{ service.adminFeedback }}">
+                            <i class="bi bi-chat-dots"></i> Feedback
+                        </button>
+                    </td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="6" class="text-center py-5">
+                        <div class="text-muted">
+                            <i class="bi bi-search h3 d-block mb-3"></i>
+                            Aucun service trouvé
+                        </div>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>

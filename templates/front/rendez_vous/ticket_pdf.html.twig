@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Ticket Rendez-vous</title>
+    <style>
+        body { font-family: 'Arial', sans-serif; color: #333; }
+        .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #0d6efd; padding-bottom: 20px; }
+        .ticket-info { margin-bottom: 20px; }
+        .label { font-weight: bold; color: #555; }
+        .value { font-size: 1.1em; }
+        .qr-code { text-align: center; margin-top: 30px; }
+        .footer { margin-top: 50px; text-align: center; font-size: 0.8em; color: #777; border-top: 1px solid #ddd; padding-top: 10px; }
+        .status { padding: 5px 10px; border-radius: 4px; color: white; background-color: #0d6efd; display: inline-block; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Ticket de Rendez-vous</h1>
+        <h3>{{ rendez_vous.banque.nomBq }}</h3>
+    </div>
+
+    <div class="ticket-info">
+        <p><span class="label">Référence:</span> <span class="value">{{ rendez_vous.ticketReference }}</span></p>
+        <p><span class="label">Agence:</span> <span class="value">{{ rendez_vous.agence.nomAg }}</span></p>
+        <p><span class="label">Service:</span> <span class="value">{{ rendez_vous.service.nomService }}</span></p>
+        <p><span class="label">Date:</span> <span class="value">{{ rendez_vous.dateRdv|date('d/m/Y') }}</span></p>
+        <p><span class="label">Heure:</span> <span class="value">{{ rendez_vous.heureRdv|date('H:i') }}</span></p>
+        <p><span class="label">Guichet:</span> <span class="value" style="color: #0d6efd; font-weight: bold;">N° {{ rendez_vous.numeroGuichet }}</span></p>
+        <p><span class="label">Durée estimée:</span> <span class="value">{{ rendez_vous.duree }} min</span></p>
+        <p><span class="label">Client:</span> <span class="value">{{ rendez_vous.client.fullName }}</span></p>
+    </div>
+
+    <div class="qr-code">
+        <img src="{{ rendez_vous.qrCode }}" alt="QR Code" width="200">
+        <p>Veuillez présenter ce code à l'accueil</p>
+    </div>
+
+    <div class="footer">
+        <p>Généré le {{ 'now'|date('d/m/Y H:i') }}</p>
+    </div>
+</body>
+</html>

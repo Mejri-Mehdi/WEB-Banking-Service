@@ -1,0 +1,142 @@
+{% extends 'admin/base_admin.html.twig' %}
+
+{% block body %}
+<style>
+    .wrap{max-width:980px}
+    .title{margin:0 0 6px;font-size:28px;font-weight:800}
+    .sub{color:#6c757d;margin-bottom:16px}
+    .card{border-radius:16px}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    .grid-1{grid-column:1 / -1}
+    .btn-pill{border-radius:999px}
+    .logo-preview{width:72px;height:72px;object-fit:contain;border-radius:16px;background:#fff;border:1px solid #eee}
+    .err{color:#dc3545;font-size:.9rem;margin-top:6px}
+    .counter{font-size:.85rem;color:#6c757d;display:flex;justify-content:space-between;margin-top:6px}
+    .counter b{color:#111}
+</style>
+
+{% set errors = errors|default({}) %}
+
+{# Ici aussi, on réaffiche depuis l'entité Banque #}
+{% set v = {
+    nom_bq: banque.nomBq|default(''),
+    statut: banque.statut|default('pending'),
+    email_bq: banque.emailBq|default(''),
+    telephone_bq: banque.telephoneBq|default(''),
+    site_web: banque.siteWeb|default(''),
+    description: banque.description|default('')
+} %}
+
+<div class="wrap">
+    <h1 class="title">Modifier la banque</h1>
+    <div class="sub">{{ banque.nomBq }} · ID {{ banque.id }}</div>
+
+    <div class="card">
+        <div class="card-body">
+            <form method="post" enctype="multipart/form-data" novalidate>
+                <input type="hidden" name="_token" value="{{ csrf_token('banque_edit_' ~ banque.id) }}">
+
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    {% if banque.logo %}
+                        <img class="logo-preview" src="{{ asset(banque.logo) }}" alt="Logo {{ banque.nomBq }}">
+                    {% else %}
+                        <div class="logo-preview d-flex align-items-center justify-content-center" style="color:#adb5bd;">—</div>
+                    {% endif %}
+                    <div class="text-muted">Logo actuel</div>
+                </div>
+
+                <div class="grid">
+                    <div>
+                        <label class="form-label">Nom de la banque</label>
+                        <input class="form-control" name="nom_bq" value="{{ v.nom_bq|e }}">
+                        {% if errors.nom_bq is defined %}
+                            {% for m in errors.nom_bq %}<div class="err">{{ m }}</div>{% endfor %}
+                        {% endif %}
+                    </div>
+
+                    <div>
+                        <label class="form-label">Statut</label>
+                        {% set s = v.statut %}
+                        <select class="form-select" name="statut">
+                            <option value="" {{ s not in ['pending','active','rejected'] ? 'selected' : '' }}>-- Choisir --</option>
+                            <option value="pending" {{ s == 'pending' ? 'selected' : '' }}>En attente</option>
+                            <option value="active" {{ s == 'active' ? 'selected' : '' }}>Active</option>
+                            <option value="rejected" {{ s == 'rejected' ? 'selected' : '' }}>Rejetée</option>
+                        </select>
+                        {% if errors.statut is defined %}
+                            {% for m in errors.statut %}<div class="err">{{ m }}</div>{% endfor %}
+                        {% endif %}
+                    </div>
+
+                    <div>
+                        <label class="form-label">Email</label>
+                        <input class="form-control" name="email_bq" value="{{ v.email_bq|e }}">
+                        {% if errors.email_bq is defined %}
+                            {% for m in errors.email_bq %}<div class="err">{{ m }}</div>{% endfor %}
+                        {% endif %}
+                    </div>
+
+                    <div>
+                        <label class="form-label">Téléphone</label>
+                        <input class="form-control" name="telephone_bq" value="{{ v.telephone_bq|e }}">
+                        {% if errors.telephone_bq is defined %}
+                            {% for m in errors.telephone_bq %}<div class="err">{{ m }}</div>{% endfor %}
+                        {% endif %}
+                    </div>
+
+                    <div class="grid-1">
+                        <label class="form-label">Site web</label>
+                        <input class="form-control" name="site_web" value="{{ v.site_web|e }}">
+                        {% if errors.site_web is defined %}
+                            {% for m in errors.site_web %}<div class="err">{{ m }}</div>{% endfor %}
+                        {% endif %}
+                    </div>
+
+                    <div class="grid-1">
+                        <label class="form-label">Logo (obligatoire)</label>
+                        <input class="form-control" type="file" name="logo" accept=".png,.jpg,.jpeg,.webp,.svg">
+                        {% if errors.logoFile is defined %}
+                            {% for m in errors.logoFile %}<div class="err">{{ m }}</div>{% endfor %}
+                        {% endif %}
+                        {% if errors.logo is defined %}
+                            {% for m in errors.logo %}<div class="err">{{ m }}</div>{% endfor %}
+                        {% endif %}
+                    </div>
+
+                    <div class="grid-1">
+                        <label class="form-label">Description</label>
+                        <textarea class="form-control" id="desc" name="description" rows="4">{{ v.description|e }}</textarea>
+                        <div class="counter">
+                            <span>Max: <b>500</b> caractères</span>
+                            <span>Restants: <b id="descLeft">500</b></span>
+                        </div>
+                        {% if errors.description is defined %}
+                            {% for m in errors.description %}<div class="err">{{ m }}</div>{% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="d-flex gap-2 mt-4">
+                    <button class="btn btn-primary btn-pill" type="submit">Enregistrer</button>
+                    <a class="btn btn-secondary btn-pill" href="{{ path('admin_banque_show', {id: banque.id}) }}">Retour</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+(function(){
+    const max = 500;
+    const ta = document.getElementById('desc');
+    const left = document.getElementById('descLeft');
+    if(!ta || !left) return;
+    function upd(){
+        const len = (ta.value || '').length;
+        left.textContent = String(Math.max(0, max - len));
+    }
+    ta.addEventListener('input', upd);
+    upd();
+})();
+</script>
+{% endblock %}

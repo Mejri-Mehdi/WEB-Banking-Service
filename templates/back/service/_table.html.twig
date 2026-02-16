@@ -1,0 +1,68 @@
+<div class="table-responsive">
+    <table class="table table-hover align-middle">
+        <thead class="table-light">
+            <tr>
+                <th>Nom du service</th>
+                <th>Description</th>
+                <th>Durée & Priorité</th>
+                <th>Statut</th>
+                <th>Feedback Admin</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for service in services %}
+                <tr>
+                    <td>
+                        <div class="fw-bold">{{ service.nomService }}</div>
+                        <span class="badge bg-info text-dark" style="font-size: 0.7em;">{{ service.categorie }}</span>
+                    </td>
+                    <td>
+                        <small class="text-muted">{{ service.description|length > 50 ? service.description|slice(0, 50) ~ '...' : service.description }}</small>
+                    </td>
+                    <td>
+                        <div>{{ service.dureeEstimee }} min</div>
+                        <span class="badge bg-secondary">{{ service.prioriteDefaut|default('Medium') }}</span>
+                    </td>
+                    <td>
+                        {% if service.disponible %}
+                            <span class="badge bg-success">Disponible</span>
+                        {% else %}
+                            <span class="badge bg-danger">Indisponible</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if service.adminFeedback %}
+                            <span class="badge bg-warning text-dark" data-bs-toggle="tooltip" title="{{ service.adminFeedback }}">
+                                <i class="bi bi-exclamation-triangle"></i> Requis
+                            </span>
+                        {% else %}
+                            <span class="badge bg-light text-secondary">-</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="btn-group">
+                            <a href="{{ path('agent_service_edit', {id: service.id}) }}" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <form method="post" action="{{ path('agent_service_delete', {id: service.id}) }}" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce service ?');" style="display: inline-block;">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="6" class="text-center py-4">
+                        <div class="text-muted">
+                            <i class="bi bi-search h3 d-block mb-2"></i>
+                            Aucun service trouvé
+                        </div>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>

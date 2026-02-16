@@ -1,0 +1,52 @@
+{# templates/admin/_pagination.html.twig #}
+{% if pageCount is defined and pageCount > 1 %}
+    <nav aria-label="Pagination">
+        <ul class="pagination bb-pagination mb-0">
+            {# Prev #}
+            {% if previous is defined %}
+                <li class="page-item">
+                    <a class="page-link" rel="prev"
+                       href="{{ path(route, query|merge({(pageParameterName): previous})) }}"
+                       aria-label="Précédent">
+                        ‹
+                    </a>
+                </li>
+            {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link" aria-hidden="true">‹</span>
+                </li>
+            {% endif %}
+
+            {# Pages #}
+            {% for page in pagesInRange %}
+                {% if page == current %}
+                    <li class="page-item active" aria-current="page">
+                        <span class="page-link">{{ page }}</span>
+                    </li>
+                {% else %}
+                    <li class="page-item">
+                        <a class="page-link"
+                           href="{{ path(route, query|merge({(pageParameterName): page})) }}">
+                            {{ page }}
+                        </a>
+                    </li>
+                {% endif %}
+            {% endfor %}
+
+            {# Next #}
+            {% if next is defined %}
+                <li class="page-item">
+                    <a class="page-link" rel="next"
+                       href="{{ path(route, query|merge({(pageParameterName): next})) }}"
+                       aria-label="Suivant">
+                        ›
+                    </a>
+                </li>
+            {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link" aria-hidden="true">›</span>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+{% endif %}

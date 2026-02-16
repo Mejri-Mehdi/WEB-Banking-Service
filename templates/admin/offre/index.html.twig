@@ -1,0 +1,33 @@
+{% extends 'admin/base_admin.html.twig' %}
+
+{% block body %}
+<div class="mb-4">
+    <h1>Toutes les offres bancaires</h1>
+    <p class="text-muted">Vue système complète</p>
+</div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <div class="input-group">
+            <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+            <input type="text" id="params-search" class="form-control border-start-0" placeholder="Rechercher une offre (titre, type)...">
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body p-0" id="search-results">
+        {% include 'admin/offre/_table.html.twig' %}
+    </div>
+</div>
+
+<script src="{{ asset('js/search.js') }}"></script>
+<script>
+    const searchInput = document.getElementById('params-search');
+    const resultsContainer = document.getElementById('search-results');
+    
+    if (searchInput && resultsContainer) {
+        searchInput.id = 'search-input';
+    }
+</script>
+{% endblock %}

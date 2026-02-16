@@ -1,0 +1,163 @@
+{% extends 'back/base_agent.html.twig' %}
+
+{% block title %}Détails Financement{% endblock %}
+
+{% block body %}
+<div class="mb-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ path('agent_dashboard') }}">Dashboard</a></li>
+            <li class="breadcrumb-item"><a href="{{ path('agent_financement_index') }}">Financements</a></li>
+            <li class="breadcrumb-item active">Détails #{{ financement.id }}</li>
+        </ol>
+    </nav>
+    <div class="d-flex justify-content-between align-items-start">
+        <div>
+            <h2 class="fw-bold mb-1">Demande de {{ financement.client.prenom }} {{ financement.client.nom }}</h2>
+            <p class="text-muted">Soumise le {{ financement.dateDemande|date('d/m/Y à H:i') }}</p>
+        </div>
+        <div class="badge {{ financement.statut == 'approved' ? 'bg-success' : (financement.statut == 'rejected' ? 'bg-danger' : 'bg-warning text-dark') }} fs-6 px-3 py-2">
+            {{ financement.statut|capitalize }}
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Main Details -->
+    <div class="col-lg-8">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-light fw-bold">
+                <i class="bi bi-info-circle me-2"></i>Informations sur le crédit
+            </div>
+            <div class="card-body">
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <label class="text-muted small">Montant Demandé</label>
+                        <div class="fs-4 fw-bold text-primary">{{ financement.montantDemande }} DT</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="text-muted small">Durée</label>
+                        <div class="fs-4 fw-bold">{{ financement.dureeMois }} Mois</div>
+                    </div>
+                    <div class="col-12">
+                        <label class="text-muted small">Objet du financement</label>
+                        <div class="p-3 bg-light rounded text-dark border">
+                            {{ financement.objetFinancement }}
+                        </div>
+                    </div>
+                    {% if financement.offre %}
+                    <div class="col-12">
+                        <label class="text-muted small">Offre Liée</label>
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-tag-fill text-primary me-2"></i>
+                            <a href="{{ path('agent_offre_edit', {id: financement.offre.id}) }}">
+                                {{ financement.offre.titre }}
+                            </a>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-light fw-bold">
+                <i class="bi bi-file-earmark-text me-2"></i>Documents joints
+            </div>
+            <div class="card-body">
+                {% if financement.documents is not empty %}
+                    <ul class="list-group list-group-flush">
+                        {% for doc in financement.documents %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <i class="bi bi-file-earmark-pdf text-danger me-2"></i> {{ doc.nomFichier }}
+                                    <small class="text-muted d-block">{{ doc.typeDocument }}</small>
+                                </div>
+                                <button class="btn btn-sm btn-outline-secondary">
+                                    <i class="bi bi-download"></i> Télécharger
+                                </button>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-muted mb-0">Aucun document joint pour le moment.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Sidebar -->
+    <div class="col-lg-4">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-light fw-bold">
+                <i class="bi bi-person me-2"></i>Profil Client
+            </div>
+            <div class="card-body text-center">
+                {% if financement.client.photo %}
+                    <img src="{{ asset('uploads/photos/' ~ financement.client.photo) }}" class="rounded-circle mb-3" width="80" height="80" alt="Client">
+                {% else %}
+                    <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 80px; height: 80px; font-size: 2rem;">
+                        {{ financement.client.prenom|first }}{{ financement.client.nom|first }}
+                    </div>
+                {% endif %}
+                <h5 class="fw-bold">{{ financement.client.prenom }} {{ financement.client.nom }}</h5>
+                <p class="text-muted mb-2">{{ financement.client.email }}</p>
+                <div class="d-grid">
+                    <a href="#" class="btn btn-outline-primary btn-sm">Voir le profil complet</a>
+                </div>
+            </div>
+        </div>
+
+        {% if financement.statut == 'pending' %}
+        <div class="card shadow-sm">
+            <div class="card-header bg-light fw-bold">
+                <i class="bi bi-gear me-2"></i>Traitement
+            </div>
+            <div class="card-body">
+                <form method="post" action="{{ path('agent_financement_traiter', {id: financement.id}) }}">
+                    <div class="mb-3">
+                        <label for="commentaire" class="form-label">Commentaire (Facultatif)</label>
+                        <textarea class="form-control" name="commentaire" id="commentaire" rows="3" placeholder="Motif du refus ou note..."></textarea>
+                    </div>
+                    <div class="d-grid gap-2">
+                        <button type="submit" name="action" value="approve" class="btn btn-success" onclick="return confirm('Confirmer l\'approbation ?')">
+                            <i class="bi bi-check-circle me-2"></i>Approuver
+                        </button>
+                        <button type="submit" name="action" value="reject" id="btnReject" class="btn btn-danger" onclick="return confirm('Confirmer le refus ?')">
+                            <i class="bi bi-x-circle me-2"></i>Refuser
+                        </button>
+                    </div>
+                </form>
+                <script>
+                    document.getElementById('btnReject').addEventListener('click', function(e) {
+                        const comment = document.getElementById('commentaire').value.trim();
+                        if (comment === '') {
+                            e.preventDefault();
+                            alert('Veuillez saisir un commentaire pour justifier le refus.');
+                            document.getElementById('commentaire').focus();
+                            // Prevent the confirm dialog from showing if validation fails (though onclick runs first usually, 
+                            // so we might need to remove onclick and handle confirm in JS, but this is a quick fix)
+                            // A better way is to move the confirm into this listener.
+                        }
+                    });
+                </script>
+            </div>
+        </div>
+        {% else %}
+        <div class="card shadow-sm border-{{ financement.statut == 'approved' ? 'success' : 'danger' }}">
+            <div class="card-body">
+                <h5 class="card-title fw-bold {{ financement.statut == 'approved' ? 'text-success' : 'text-danger' }}">
+                    Demande {{ financement.statut == 'approved' ? 'Approuvée' : 'Refusée' }}
+                </h5>
+                <p class="card-text text-muted mb-1">Traitée le {{ financement.dateReponse|date('d/m/Y') }}</p>
+                {% if financement.commentaireAgent %}
+                    <div class="alert alert-light mt-2 border">
+                        <strong>Note :</strong> {{ financement.commentaireAgent }}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

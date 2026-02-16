@@ -1,0 +1,88 @@
+{% extends 'back/base_agent.html.twig' %}
+
+{% block title %}Modifier Offre{% endblock %}
+
+{% block body %}
+<div class="mb-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ path('agent_dashboard') }}">Dashboard</a></li>
+            <li class="breadcrumb-item"><a href="{{ path('agent_offre_index') }}">Offres</a></li>
+            <li class="breadcrumb-item active">{{ offre.titre }}</li>
+        </ol>
+    </nav>
+    <h2 class="fw-bold">Modifier l'offre</h2>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+                <form method="post">
+                    <div class="mb-4">
+                        <label for="titre" class="form-label fw-bold">Titre de l'offre *</label>
+                        <input type="text" name="titre" id="titre" class="form-control form-control-lg" value="{{ offre.titre }}" required minlength="3" maxlength="255">
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="description" class="form-label fw-bold">Description</label>
+                        <textarea name="description" id="description" rows="3" class="form-control" required minlength="10">{{ offre.description }}</textarea>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label for="type_offre" class="form-label fw-bold">Type d'offre</label>
+                            <select name="type_offre" id="type_offre" class="form-select">
+                                <option value="Crédit Consommation" {{ offre.typeOffre == 'Crédit Consommation' ? 'selected' : '' }}>Crédit Consommation</option>
+                                <option value="Crédit Immobilier" {{ offre.typeOffre == 'Crédit Immobilier' ? 'selected' : '' }}>Crédit Immobilier</option>
+                                <option value="Epargne" {{ offre.typeOffre == 'Epargne' ? 'selected' : '' }}>Epargne</option>
+                                <option value="Compte Courant" {{ offre.typeOffre == 'Compte Courant' ? 'selected' : '' }}>Compte Courant</option>
+                                <option value="Carte Bancaire" {{ offre.typeOffre == 'Carte Bancaire' ? 'selected' : '' }}>Carte Bancaire</option>
+                                <option value="Assurance" {{ offre.typeOffre == 'Assurance' ? 'selected' : '' }}>Assurance</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="taux" class="form-label fw-bold">Taux d'intérêt (%)</label>
+                            <input type="number" name="taux" id="taux" class="form-control" step="0.01" min="0" value="{{ offre.taux }}">
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label for="montant_min" class="form-label fw-bold">Montant Min (DT)</label>
+                            <input type="number" name="montant_min" id="montant_min" class="form-control" step="100" value="{{ offre.montantMin }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="montant_max" class="form-label fw-bold">Montant Max (DT)</label>
+                            <input type="number" name="montant_max" id="montant_max" class="form-control" step="100" value="{{ offre.montantMax }}">
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label for="date_debut" class="form-label fw-bold">Date Début</label>
+                            <input type="date" name="date_debut" id="date_debut" class="form-control" value="{{ offre.dateDebut ? offre.dateDebut|date('Y-m-d') : '' }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="date_fin" class="form-label fw-bold">Date Fin</label>
+                            <input type="date" name="date_fin" id="date_fin" class="form-control" value="{{ offre.dateFin ? offre.dateFin|date('Y-m-d') : '' }}" required>
+                        </div>
+                    </div>
+
+                    <div class="form-check mb-4">
+                        <input class="form-check-input" type="checkbox" name="active" id="active" {{ offre.statut == 'Active' ? 'checked' : '' }}>
+                        <label class="form-check-label" for="active">
+                            Offre active
+                        </label>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg">Enregistrer les modifications</button>
+                        <a href="{{ path('agent_offre_index') }}" class="btn btn-outline-secondary">Annuler</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

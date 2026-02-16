@@ -1,0 +1,175 @@
+{% extends 'front/base_client.html.twig' %}
+
+{% block body %}
+<div class="mb-4">
+    <h1 class="mb-2">
+        <i class="bi bi-bank me-2"></i>Autres Banques
+    </h1>
+    <p class="text-muted mb-3">Découvrez les autres établissements bancaires</p>
+
+    {% if userBanque %}
+        <div class="alert alert-info d-flex align-items-center gap-2">
+            <i class="bi bi-info-circle"></i>
+            <div>
+                Vous êtes actuellement client de <strong>{{ userBanque.nomBq }}</strong>
+            </div>
+        </div>
+    {% endif %}
+
+    {# Barre recherche + tri + appliquer + reset #}
+    <form method="get" action="{{ path('client_autres_banques') }}" class="card border-0 shadow-sm p-3 mb-4">
+        <div class="row g-2 align-items-center">
+            <div class="col-md-6">
+                <label class="form-label fw-semibold mb-1">Rechercher</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-white">
+                        <i class="bi bi-search"></i>
+                    </span>
+                    <input
+                        type="text"
+                        name="q"
+                        value="{{ q|default('')|e }}"
+                        class="form-control"
+                        placeholder="Rechercher une banque par nom..."
+                    >
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <label class="form-label fw-semibold mb-1">Trier par</label>
+                <select name="t" class="form-select">
+                    <option value="nom_asc"  {{ (t|default('nom_asc')) == 'nom_asc'  ? 'selected' : '' }}>Nom (A → Z)</option>
+                    <option value="nom_desc" {{ (t|default('nom_asc')) == 'nom_desc' ? 'selected' : '' }}>Nom (Z → A)</option>
+                </select>
+            </div>
+
+            <div class="col-md-2 d-flex gap-2 align-self-end">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-check2 me-1"></i>Appliquer
+                </button>
+                <a
+    href="{{ path('client_autres_banques') }}"
+    class="btn btn-outline-secondary btn-reset-icon"
+    title="Réinitialiser"
+>
+    <i class="bi bi-arrow-counterclockwise"></i>
+</a>
+            </div>
+        </div>
+    </form>
+</div>
+
+{# banques est un objet KNP Pagination #}
+{% set total = banques.getTotalItemCount is defined ? banques.getTotalItemCount : (banques|length) %}
+
+{% if total > 0 %}
+    <div class="row g-4">
+        {% for banque in banques %}
+            <div class="col-md-6 col-xl-4">
+                <div class="card h-100 shadow-sm border-0 banque-card">
+                    <div class="card-body d-flex flex-column">
+                        <div class="d-flex align-items-center gap-3 mb-3">
+                            {% if banque.logo %}
+                                <img
+                                    src="{{ asset(banque.logo) }}"
+                                    alt="Logo {{ banque.nomBq }}"
+                                    class="banque-logo"
+                                >
+                            {% else %}
+                                <div class="banque-logo banque-logo--empty">
+                                    <i class="bi bi-building"></i>
+                                </div>
+                            {% endif %}
+
+                            <div class="flex-grow-1">
+                                <h5 class="mb-0">{{ banque.nomBq }}</h5>
+                                <div class="text-muted small">Banque</div>
+                            </div>
+                        </div>
+
+                        {% if banque.description %}
+                            <p class="text-muted mb-4 banque-desc">
+                                {{ banque.description }}
+                            </p>
+                        {% else %}
+                            <p class="text-muted mb-4 banque-desc">
+                                Aucune description disponible.
+                            </p>
+                        {% endif %}
+
+                        <div class="mt-auto d-flex justify-content-end">
+                            <a href="{{ path('client_autre_banque_view', { id: banque.id }) }}"
+                               class="btn btn-primary">
+                                <i class="bi bi-eye me-2"></i>Voir informations
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    {# Pagination en bas à droite (style front/_pagination.html.twig) #}
+    {% if banques.pageCount is defined and banques.pageCount > 1 %}
+        <div class="d-flex justify-content-end mt-4">
+            {{ knp_pagination_render(banques, 'front/_pagination.html.twig') }}
+        </div>
+    {% endif %}
+{% else %}
+    <div class="card border-0 shadow-sm">
+        <div class="card-body text-center py-5">
+            <i class="bi bi-bank" style="font-size: 4rem; color: var(--medium-gray);"></i>
+            <p class="text-muted mt-3 mb-0">
+                {% if q|default('') %}
+                    Aucune banque ne correspond à votre recherche.
+                {% else %}
+                    Aucune autre banque disponible pour le moment
+                {% endif %}
+            </p>
+        </div>
+    </div>
+{% endif %}
+
+<style>
+    .banque-card { border-radius: 16px; }
+
+    .banque-logo {
+        width: 56px;
+        height: 56px;
+        object-fit: contain;
+        border-radius: 14px;
+        background: #fff;
+        border: 1px solid #e9ecef;
+        padding: 6px;
+    }
+
+    .banque-logo--empty{
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        color:#9aa3af;
+        font-size: 1.4rem;
+        background: #f8fafc;
+    }
+
+    .banque-desc{
+        display: -webkit-box;
+        -webkit-line-clamp: 5;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    /* --- Correction bouton reset --- */
+    .btn-reset-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1;
+    }
+
+    .btn-reset-icon i {
+        font-size: 1.1rem;
+        line-height: 1;
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,61 @@
+<div class="table-responsive">
+    <table class="table table-hover align-middle">
+        <thead class="table-light">
+            <tr>
+                <th>Titre</th>
+                <th>Type</th>
+                <th>Taux / Montant</th>
+                <th>Période</th>
+                <th>Statut</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for offre in offres %}
+                <tr>
+                    <td>
+                        <div class="fw-bold">{{ offre.titre }}</div>
+                        <small class="text-muted">{{ offre.description|length > 40 ? offre.description|slice(0, 40) ~ '...' : offre.description }}</small>
+                    </td>
+                    <td><span class="badge bg-info text-dark">{{ offre.typeOffre }}</span></td>
+                    <td>
+                        <div>Taux: <strong>{{ offre.taux }}%</strong></div>
+                        <small class="text-muted">{{ offre.montantMin }} - {{ offre.montantMax }} DT</small>
+                    </td>
+                    <td>
+                        {% if offre.dateDebut %}
+                            <small>{{ offre.dateDebut|date('d/m/Y') }} <br>-> {{ offre.dateFin ? offre.dateFin|date('d/m/Y') : '...' }}</small>
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if offre.statut == 'Active' %}
+                            <span class="badge bg-success">Active</span>
+                        {% else %}
+                            <span class="badge bg-secondary">Inactive</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="btn-group">
+                            <a href="{{ path('agent_offre_edit', {id: offre.id}) }}" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <form method="post" action="{{ path('agent_offre_delete', {id: offre.id}) }}" onsubmit="return confirm('Supprimer cette offre ?');" style="display: inline-block;">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="6" class="text-center py-4">
+                        <div class="text-muted">Aucune offre trouvée.</div>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>

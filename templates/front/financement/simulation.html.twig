@@ -1,0 +1,168 @@
+{% extends 'front/base_client.html.twig' %}
+
+{% block title %}Simulateur de Crédit{% endblock %}
+
+{% block body %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-lg border-0 rounded-3">
+                <div class="card-header bg-primary text-white p-4">
+                    <h2 class="fw-bold mb-0"><i class="bi bi-calculator me-2"></i>Simulateur de Crédit</h2>
+                    <p class="mb-0 opacity-75">Estimez vos mensualités en quelques clics</p>
+                </div>
+                <div class="card-body p-5">
+                    <form id="simulation-form">
+                        <div class="mb-4">
+                            <label for="offre" class="form-label fw-bold">Choisir une offre (Optionnel)</label>
+                            <select id="offre" class="form-select form-select-lg">
+                                <option value="" data-taux="0">Sélectionner une offre...</option>
+                                {% for offre in offres %}
+                                    <option value="{{ offre.id }}" data-taux="{{ offre.taux }}">{{ offre.titre }} ({{ offre.taux }}%)</option>
+                                {% endfor %}
+                                <option value="custom" data-taux="custom">Autre / Personnalisé</option>
+                            </select>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label for="montant" class="form-label fw-bold">Montant du crédit (DT)</label>
+                                <div class="input-group">
+                                    <input type="number" id="montant" class="form-control form-control-lg" placeholder="Ex: 20000" min="1000">
+                                    <span class="input-group-text">DT</span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="duree" class="form-label fw-bold">Durée (Mois)</label>
+                                <input type="number" id="duree" class="form-control form-control-lg" placeholder="Ex: 48" min="6" max="300">
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="taux" class="form-label fw-bold">Taux d'intérêt annuel (%)</label>
+                            <input type="number" id="taux" class="form-control form-control-lg" placeholder="Ex: 8.5" step="0.01">
+                        </div>
+                        
+                        <!-- Advanced Metier: Salary Check -->
+                        <div class="mb-4">
+                            <label for="salaire" class="form-label fw-bold text-muted">Votre Salaire Net (pour test d'éligibilité)</label>
+                            <input type="number" id="salaire" class="form-control" placeholder="Optionnel">
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="button" onclick="calculate()" class="btn btn-primary btn-lg">
+                                <i class="bi bi-gear-wide-connected me-2"></i>Calculer
+                            </button>
+                        </div>
+                    </form>
+
+                    <div id="result-area" class="mt-5 d-none">
+                        <hr>
+                        <h4 class="fw-bold text-center mb-4">Résultat de la simulation</h4>
+                        <div class="row text-center g-4">
+                            <div class="col-md-4">
+                                <div class="p-3 bg-light rounded border">
+                                    <div class="text-muted small">Mensualité</div>
+                                    <div class="fs-2 fw-bold text-primary" id="res-mensualite">0 DT</div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="p-3 bg-light rounded border">
+                                    <div class="text-muted small">Coût total du crédit</div>
+                                    <div class="fs-4 fw-bold" id="res-total">0 DT</div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="p-3 bg-light rounded border">
+                                    <div class="text-muted small">Intérêts totaux</div>
+                                    <div class="fs-4 fw-bold text-danger" id="res-interets">0 DT</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div id="eligibility-alert" class="alert mt-4 d-none"></div>
+
+                        <div class="text-center mt-4">
+                            <a href="#" id="btn-apply" class="btn btn-success btn-lg">
+                                <i class="bi bi-check-circle me-2"></i>Demander ce crédit
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const offreSelect = document.getElementById('offre');
+    const tauxInput = document.getElementById('taux');
+    const montantInput = document.getElementById('montant');
+    const dureeInput = document.getElementById('duree');
+    const resultArea = document.getElementById('result-area');
+    const btnApply = document.getElementById('btn-apply');
+
+    offreSelect.addEventListener('change', function() {
+        const selected = this.options[this.selectedIndex];
+        const taux = selected.getAttribute('data-taux');
+        if (taux && taux !== 'custom' && taux !== '0') {
+            tauxInput.value = taux;
+            tauxInput.readOnly = true;
+            tauxInput.classList.add('bg-light');
+        } else {
+            tauxInput.readOnly = false;
+            tauxInput.classList.remove('bg-light');
+            if (taux === '0') tauxInput.value = '';
+        }
+    });
+
+    function calculate() {
+        const montant = parseFloat(montantInput.value);
+        const duree = parseInt(dureeInput.value);
+        const tauxAnnuel = parseFloat(tauxInput.value);
+        const salaire = parseFloat(document.getElementById('salaire').value);
+
+        if (!montant || !duree || !tauxAnnuel) {
+            alert("Veuillez remplir tous les champs obligatoires.");
+            return;
+        }
+
+        // Logic Metier: Calcul Mensualité
+        // M = P * [r(1+r)^n] / [(1+r)^n - 1]
+        // r = monthly rate, n = months
+        const r = (tauxAnnuel / 100) / 12;
+        const n = duree;
+        
+        const mensualite = montant * (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
+        const total = mensualite * n;
+        const interets = total - montant;
+
+        document.getElementById('res-mensualite').textContent = mensualite.toFixed(2) + ' DT';
+        document.getElementById('res-total').textContent = total.toFixed(2) + ' DT';
+        document.getElementById('res-interets').textContent = interets.toFixed(2) + ' DT';
+
+        resultArea.classList.remove('d-none');
+
+        // Logic Metier: Eligibility (Taux d'endettement < 40%)
+        const eligAlert = document.getElementById('eligibility-alert');
+        if (salaire > 0) {
+            const ratio = (mensualite / salaire) * 100;
+            eligAlert.classList.remove('d-none', 'alert-success', 'alert-warning', 'alert-danger');
+            
+            if (ratio > 40) {
+                eligAlert.classList.add('alert-danger');
+                eligAlert.innerHTML = `<i class="bi bi-exclamation-triangle-fill me-2"></i><strong>Attention :</strong> La mensualité représente <strong>${ratio.toFixed(1)}%</strong> de votre salaire. Cela dépasse le seuil recommandé de 40%.`;
+            } else {
+                eligAlert.classList.add('alert-success');
+                eligAlert.innerHTML = `<i class="bi bi-check-circle-fill me-2"></i><strong>Excellent :</strong> Taux d'endettement de <strong>${ratio.toFixed(1)}%</strong>. Vous êtes éligible.`;
+            }
+        } else {
+            eligAlert.classList.add('d-none');
+        }
+
+        // Link to Apply
+        const offreId = offreSelect.value !== 'custom' ? offreSelect.value : '';
+        btnApply.href = `{{ path('client_financement_new') }}?montant=${montant}&duree=${duree}&offre_id=${offreId}`;
+    }
+</script>
+{% endblock %}

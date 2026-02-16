@@ -1,0 +1,743 @@
+<div id="ai-assistant-container">
+    <!-- Floating Button -->
+    <button id="ai-fab" class="ai-fab {{ is_granted('ROLE_ADMIN') ? 'ai-fab-admin' : (is_granted('ROLE_AGENT') ? 'ai-fab-agent' : 'ai-fab-client') }}">
+        <i class="bi bi-robot"></i>
+        <span class="ai-tooltip">Besoin d'aide ?</span>
+    </button>
+
+    <!-- Chat Window -->
+    <div id="ai-chat-window" class="ai-chat-window d-none">
+        <div class="ai-header {{ is_granted('ROLE_ADMIN') ? 'ai-header-admin' : (is_granted('ROLE_AGENT') ? 'ai-header-agent' : 'ai-header-client') }}">
+            <div class="d-flex align-items-center">
+                <i class="bi bi-robot fs-4 me-2"></i>
+                <span class="fw-bold">Assistant Beeline</span>
+            </div>
+            <button id="ai-close-btn" class="btn-close btn-close-white"></button>
+        </div>
+        
+        <div id="ai-messages" class="ai-messages">
+            <div class="ai-message bot">
+                Bonjour {{ app.user.prenom }} ! Je suis votre assistant vocal. 
+                Dites "Je veux prendre un rendez-vous" pour commencer.
+            </div>
+        </div>
+
+        <div class="ai-controls">
+            <button id="ai-mic-btn" class="ai-mic-btn">
+                <i class="bi bi-mic"></i>
+            </button>
+            <input type="text" id="ai-input" class="form-control ai-input" placeholder="Écrivez ou parlez...">
+            <button id="ai-send-btn" class="btn btn-primary d-none">
+                <i class="bi bi-send"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+    #ai-assistant-container {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        z-index: 9999;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .ai-fab {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        border: none;
+        color: white;
+        font-size: 24px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        cursor: pointer;
+        transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative; /* For absolute tooltip */
+    }
+
+    /* Client (Default Blue) */
+    .ai-fab-client {
+        background: linear-gradient(135deg, #0d6efd, #0a58ca);
+        box-shadow: 0 4px 15px rgba(13, 110, 253, 0.4);
+    }
+
+    /* Agent (Slate/Dark) */
+    .ai-fab-agent {
+        background: linear-gradient(135deg, #475569, #1e293b);
+        box-shadow: 0 4px 15px rgba(30, 41, 59, 0.4);
+    }
+
+    /* Admin (Red/Purple) */
+    .ai-fab-admin {
+        background: linear-gradient(135deg, #dc3545, #b02a37);
+        box-shadow: 0 4px 15px rgba(220, 53, 69, 0.4);
+    }
+
+    .ai-fab:hover {
+        transform: scale(1.1);
+    }
+
+    .ai-tooltip {
+        position: absolute;
+        right: 70px;
+        background: rgba(0, 0, 0, 0.8);
+        color: white;
+        padding: 5px 10px;
+        border-radius: 5px;
+        font-size: 0.8rem;
+        white-space: nowrap;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s;
+    }
+
+    .ai-fab:hover .ai-tooltip {
+        opacity: 1;
+    }
+
+    .ai-chat-window {
+        position: absolute;
+        bottom: 80px;
+        right: 0;
+        width: 350px;
+        height: 500px;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        animation: slideIn 0.3s ease-out;
+    }
+
+    @keyframes slideIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .ai-header {
+        color: white;
+        padding: 15px 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .ai-header-client { background: linear-gradient(135deg, #0d6efd, #0a58ca); }
+    .ai-header-agent { background: linear-gradient(135deg, #475569, #1e293b); }
+    .ai-header-admin { background: linear-gradient(135deg, #dc3545, #b02a37); }
+
+    .ai-messages {
+        flex: 1;
+        padding: 20px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        background: #f8f9fa;
+        scroll-behavior: smooth;
+    }
+
+    .ai-message {
+        max-width: 80%;
+        padding: 10px 15px;
+        border-radius: 15px;
+        font-size: 0.9rem;
+        line-height: 1.4;
+    }
+
+    .ai-message.bot {
+        background: white;
+        color: #333;
+        border-bottom-left-radius: 5px;
+        align-self: flex-start;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+
+    .ai-message.user {
+        background: #0d6efd;
+        color: white;
+        border-bottom-right-radius: 5px;
+        align-self: flex-end;
+    }
+
+    .ai-controls {
+        padding: 15px;
+        background: white;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        border-top: 1px solid #eee;
+    }
+
+    .ai-mic-btn {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        border: none;
+        background: #f1f3f5;
+        color: #0d6efd;
+        transition: all 0.2s;
+    }
+
+    .ai-mic-btn.listening {
+        background: #dc3545;
+        color: white;
+        animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+        0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4); }
+        70% { box-shadow: 0 0 0 10px rgba(220, 53, 69, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); }
+    }
+
+    .ai-input {
+        border-radius: 20px;
+        background: #f1f3f5;
+        border: none;
+        padding-left: 15px;
+    }
+    
+    .ai-input:focus {
+        background: white;
+        box-shadow: 0 0 0 2px #0d6efd25;
+    }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const fab = document.getElementById('ai-fab');
+    const chatWindow = document.getElementById('ai-chat-window');
+    const closeBtn = document.getElementById('ai-close-btn');
+    const micBtn = document.getElementById('ai-mic-btn');
+    const input = document.getElementById('ai-input');
+    const messagesContainer = document.getElementById('ai-messages');
+
+    let recognition = null;
+    let isListening = false;
+    let synthesis = window.speechSynthesis;
+
+    // AI Config State
+    const state = {
+        step: 'idle', 
+        data: {},
+        mode: '{{ is_granted("ROLE_AGENT") ? "agent" : "client" }}'
+    };
+
+    let servicesList = [];
+    let agenciesList = []; // Store all agencies
+    let agencyId = null;
+
+    // Initialize
+    initSpeech();
+    if (state.mode === 'client') {
+        fetchConfig();
+    } else {
+        // Agent Greeting
+        document.querySelector('.ai-message.bot').textContent = "Bonjour Agent {{ app.user.prenom }} ! Je peux vous aider à rédiger des services. Dites 'Génère un service pour Crédit Auto'.";
+        
+        // Check for Auto-Prompt (URL param)
+        const urlParams = new URLSearchParams(window.location.search);
+        const autoPrompt = urlParams.get('ai_prompt');
+        if (autoPrompt) {
+            chatWindow.classList.remove('d-none');
+            addMessage(`Génération automatique pour : ${autoPrompt}`, 'user');
+            processInput(`génère pour ${autoPrompt}`);
+        }
+    }
+
+    function initSpeech() {
+        if ('webkitSpeechRecognition' in window) {
+            recognition = new webkitSpeechRecognition();
+            recognition.continuous = false;
+            recognition.lang = 'fr-FR';
+            recognition.interimResults = false;
+
+            recognition.onresult = function(event) {
+                const text = event.results[0][0].transcript;
+                addMessage(text, 'user');
+                processInput(text);
+            };
+
+            recognition.onend = function() {
+                isListening = false;
+                micBtn.classList.remove('listening');
+            };
+        } else {
+            console.warn('Web Speech API not supported');
+            micBtn.style.display = 'none';
+        }
+    }
+
+    async function fetchConfig() {
+        try {
+            const resp = await fetch('/client/ai/config');
+            const data = await resp.json();
+            if (data.services) {
+                servicesList = data.services;
+            }
+            if (data.agences) {
+                agenciesList = data.agences;
+                // If only one agency, default to it immediately
+                if (agenciesList.length === 1) {
+                    agencyId = agenciesList[0].id;
+                }
+            }
+        } catch (e) {
+            console.error("AI Config Error", e);
+        }
+    }
+
+    // Toggle Chat
+    fab.addEventListener('click', () => chatWindow.classList.toggle('d-none'));
+    closeBtn.addEventListener('click', () => chatWindow.classList.add('d-none'));
+
+    // Mic Click
+    micBtn.addEventListener('click', () => {
+        if (!recognition) return;
+        if (isListening) {
+            recognition.stop();
+        } else {
+            recognition.start();
+            isListening = true;
+            micBtn.classList.add('listening');
+        }
+    });
+    
+    // Text Input
+    input.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter' && input.value.trim()) {
+            const text = input.value.trim();
+            addMessage(text, 'user');
+            processInput(text);
+            input.value = '';
+        }
+    });
+
+    function addMessage(text, sender) {
+        const div = document.createElement('div');
+        div.className = `ai-message ${sender}`;
+        div.textContent = text;
+        messagesContainer.appendChild(div);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+        if (sender === 'bot') speak(text);
+    }
+
+    function speak(text) {
+        if (synthesis.speaking) synthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'fr-FR';
+        synthesis.speak(utterance);
+    }
+
+    async function processInput(text) {
+        text = text.toLowerCase();
+
+        // --- AGENT MODE ---
+        if (state.mode === 'agent') {
+            const currentPath = window.location.pathname;
+
+            // COMMAND: Creation / Suggestion (Flexible Keywords)
+            // "Général" is often a misheard "Génère", "Créer", "Nouveau", "Ajoute"
+            if (text.includes('suggère') || text.includes('génère') || text.includes('remplis') || 
+                text.includes('créer') || text.includes('nouveau') || text.includes('ajout') || text.includes('général')) {
+                
+                // Extract topic
+                let topic = '';
+                if (text.includes('pour')) {
+                    topic = text.split('pour')[1];
+                } else if (text.includes('de')) {
+                    topic = text.split('de')[1];
+                } else if (text.includes('sur')) {
+                    topic = text.split('sur')[1];
+                } else {
+                    // Fallback: Remove known keywords and take the rest
+                    topic = text.replace(/génère|suggère|remplis|créer|nouveau|ajout|général|un|service|le|la|une/gi, '');
+                }
+                topic = topic.trim();
+
+                // If no topic found, ask for it
+                if (topic.length < 2) {
+                    addMessage("Quel type de service voulez-vous créer ?", 'bot');
+                    return;
+                }
+
+                // If not on Creation Page, redirect
+                if (!currentPath.includes('/service/new') && !currentPath.includes('/service/edit')) {
+                    addMessage(`Je vous redirige vers la création pour "${topic}"...`, 'bot');
+                    setTimeout(() => {
+                        window.location.href = `/agent/service/new?ai_prompt=${encodeURIComponent(topic)}`;
+                    }, 1500);
+                    return;
+                }
+
+                addMessage(`Je génère une suggestion pour "${topic}"...`, 'bot');
+                
+                const suggestion = await fetch('/agent/ai/suggest-service', {
+                    method: 'POST',
+                    body: JSON.stringify({ prompt: topic })
+                }).then(r => r.json());
+
+                // Auto-fill forms
+                const nameField = document.getElementById('nom_service');
+                const descField = document.getElementById('description');
+                const dureeField = document.getElementById('duree_estimee');
+                const dispoField = document.getElementById('disponible');
+                const catField = document.getElementById('categorie');
+                const prioField = document.getElementById('priorite_defaut');
+                const docsField = document.getElementById('documents_requis');
+                const fraisField = document.getElementById('frais');
+
+                let filled = false;
+                if (nameField) { nameField.value = suggestion.nom; nameField.style.backgroundColor = '#e8f0fe'; filled = true; }
+                if (descField) { descField.value = suggestion.description; descField.style.backgroundColor = '#e8f0fe'; filled = true; }
+                if (dureeField) { dureeField.value = suggestion.duree; dureeField.style.backgroundColor = '#e8f0fe'; filled = true; }
+                if (dispoField) { dispoField.value = suggestion.disponible; dispoField.style.backgroundColor = '#e8f0fe'; filled = true; }
+                
+                // New Fields
+                if (catField && suggestion.categorie) { catField.value = suggestion.categorie; catField.style.backgroundColor = '#e8f0fe'; filled = true; }
+                if (prioField && suggestion.priorite_defaut) { prioField.value = suggestion.priorite_defaut; prioField.style.backgroundColor = '#e8f0fe'; filled = true; }
+                if (docsField && suggestion.documents_requis) { docsField.value = suggestion.documents_requis; docsField.style.backgroundColor = '#e8f0fe'; filled = true; }
+                if (fraisField && suggestion.frais !== undefined) { fraisField.value = suggestion.frais; fraisField.style.backgroundColor = '#e8f0fe'; filled = true; }
+
+                if (filled) {
+                    addMessage(`J'ai tout rempli pour "${suggestion.nom}". Voulez-vous Valider la création ?`, 'bot');
+                    speak(`Formulaire complété. Voulez-vous que je valide la création maintenant ?`);
+                    state.step = 'awaiting_agent_confirm'; // New Step
+                }
+            } 
+            // COMMAND: "Supprime" or "Modifie" (Navigation & Action)
+            else if (text.includes('modifie') || text.includes('supprime')) {
+                // If on list page and "premier" or "ce service" is mentioned, TRY TO ACT
+                if (currentPath.includes('/service') && !currentPath.includes('/new') && !currentPath.includes('/edit')) {
+                     if (text.includes('premier') || text.includes('ce service') || text.includes('le') && document.querySelectorAll('tbody tr').length === 1) {
+                        const rows = document.querySelectorAll('tbody tr');
+                         if (rows.length > 0) {
+                             const row = rows[0];
+                             if (text.includes('supprime')) {
+                                 const deleteBtn = row.querySelector('button.btn-outline-danger');
+                                 if (deleteBtn) {
+                                     addMessage("Je supprime le service...", 'bot');
+                                     // Bypass confirm
+                                     const form = deleteBtn.closest('form');
+                                     if (form) form.submit();
+                                     return;
+                                 }
+                             } else if (text.includes('modifie')) {
+                                 const editLink = row.querySelector('a.btn-outline-primary');
+                                 if (editLink) {
+                                     addMessage("Je vous redirige vers la modification...", 'bot');
+                                     editLink.click();
+                                     return;
+                                 }
+                             }
+                         }
+                     }
+                }
+
+                // Default: Redirect Logic (Existing)
+                let topic = text.replace('modifie', '').replace('supprime', '').replace('le service', '').trim();
+                if (topic) {
+                    addMessage(`Je vous redirige vers la liste filtrée pour "${topic}". Dites ensuite "Supprime le premier" pour confirmer.`, 'bot');
+                    setTimeout(() => window.location.href = `/agent/service/?search=${encodeURIComponent(topic)}`, 1500);
+                } else {
+                    addMessage("Je vous redirige vers la liste des services.", 'bot');
+                    setTimeout(() => window.location.href = '/agent/service/', 1500);
+                }
+            }
+            // CONFIRMATION STEP
+            else if (state.step === 'awaiting_agent_confirm') {
+                if (text.includes('oui') || text.includes('valide') || text.includes('ok')) {
+                    addMessage("Je valide....", 'bot');
+                    const submitBtn = document.querySelector('button[type="submit"]');
+                    if (submitBtn) {
+                        submitBtn.click();
+                        state.step = 'idle';
+                    } else {
+                        addMessage("Je ne trouve pas le bouton valider.", 'bot');
+                    }
+                } else {
+                    addMessage("D'accord, je vous laisse vérifier.", 'bot');
+                    state.step = 'idle';
+                }
+            }
+            else {
+                 addMessage("Je peux créer un service pour vous. Dites 'Génère un service pour Crédit disponible immédiatement'.", 'bot');
+            }
+            return;
+        }
+
+        // --- CLIENT MODE (Enhanced with Agency Selection) ---
+        // 1. Intent Detection (Basic)
+        if (state.step === 'idle') {
+            if (text.includes('rendez-vous') || text.includes('réserver') || text.includes('voir')) {
+                // Check Agency Count
+                if (agenciesList.length > 1) {
+                    state.step = 'awaiting_agency';
+                    const agencyNames = agenciesList.map(a => a.nom).join(', ');
+                    addMessage(`Dans quelle agence souhaitez-vous aller ? (${agencyNames})`, 'bot');
+                } else if (agenciesList.length === 1) {
+                    agencyId = agenciesList[0].id;
+                    state.step = 'awaiting_service';
+                    addMessage("D'accord. Pour quel service souhaitez-vous prendre rendez-vous ?", 'bot');
+                    const examples = servicesList.slice(0, 3).map(s => s.nom).join(', ');
+                    addMessage(`(Exemples: ${examples}...)`, 'bot');
+                } else {
+                    addMessage("Désolé, je ne trouve aucune agence associée à votre banque.", 'bot');
+                }
+            } else {
+                addMessage("Désolé, je ne gère que la prise de rendez-vous. Dites 'Je veux un rendez-vous'.", 'bot');
+            }
+            return;
+        }
+
+        // 1.5 Agency Selection (Enhanced Matching)
+        if (state.step === 'awaiting_agency') {
+            // Helper: Simple Levenshtein distance for fuzzy matching
+            const levenshtein = (a, b) => {
+                const tmp = [];
+                let i, j;
+                for (i = 0; i <= a.length; i++) { tmp[i] = [i]; }
+                for (j = 0; j <= b.length; j++) { tmp[0][j] = j; }
+                for (i = 1; i <= a.length; i++) {
+                    for (j = 1; j <= b.length; j++) {
+                        tmp[i][j] = Math.min(tmp[i-1][j-1] + (a[i-1] === b[j-1] ? 0 : 1), Math.min(tmp[i-1][j] + 1, tmp[i][j-1] + 1));
+                    }
+                }
+                return tmp[a.length][b.length];
+            };
+
+            // Helper: Optimize string (remove accents, lower)
+            const normalize = (str) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+            
+            const userText = normalize(text);
+            let bestMatch = null;
+            let bestScore = Infinity; // Lower is better (distance)
+            let bestKeywordMatch = null;
+
+            agenciesList.forEach(agency => {
+                const agencyName = normalize(agency.nom);
+                const address = normalize(agency.address || '');
+                
+                // 1. Exact/Substring match (Strongest)
+                if (agencyName.includes(userText) || address.includes(userText)) {
+                    if (!bestKeywordMatch) bestKeywordMatch = agency;
+                }
+
+                // 2. Keyword Matching (City/Specifics)
+                // Filter out common words to focus on "Medenine", "Sfax", etc.
+                const keywords = agencyName.split(/\s+/).filter(w => w.length > 2 && !['agence', 'biat', 'banque', 'rue', 'av'].includes(w));
+                
+                keywords.forEach(keyword => {
+                    // Check if keyword is in user text (e.g. "Medenine" in "je vais a medenine")
+                    if (userText.includes(keyword)) {
+                        bestKeywordMatch = agency;
+                    }
+                    
+                    // Fuzzy check on tokens (e.g. "medin" vs "medenine")
+                    // Check distance relative to keyword length
+                    const userTokens = userText.split(/\s+/);
+                    userTokens.forEach(uToken => {
+                        const dist = levenshtein(keyword, uToken);
+                        if (dist < 3 && dist < keyword.length / 2) { // Allow small errors
+                            if (dist < bestScore) {
+                                bestScore = dist;
+                                bestMatch = agency;
+                            }
+                        }
+                    });
+                });
+            });
+
+            // Prioritize keyword containment over fuzzy
+            const foundAgency = bestKeywordMatch || bestMatch;
+            
+            if (foundAgency) {
+                agencyId = foundAgency.id;
+                state.step = 'awaiting_service';
+                addMessage(`Je vous ai compris : "${foundAgency.nom}". Pour quel service ?`, 'bot');
+                const examples = servicesList.slice(0, 3).map(s => s.nom).join(', ');
+                addMessage(`(Exemples: ${examples}...)`, 'bot');
+            } else {
+                const agencyNames = agenciesList.map(a => a.nom.replace('Agence BIAT ', '')).join(', '); // Simplify display
+                addMessage(`Je n'ai pas bien compris. Essayez de dire juste la ville (ex: "${agencyNames}").`, 'bot');
+            }
+            return;
+        }
+
+        // 2. Service Extraction (Enhanced Matching)
+        if (state.step === 'awaiting_service') {
+             // Reuse Helpers (scoped here if not moved global)
+            const levenshtein = (a, b) => {
+                const tmp = [];
+                let i, j;
+                for (i = 0; i <= a.length; i++) { tmp[i] = [i]; }
+                for (j = 0; j <= b.length; j++) { tmp[0][j] = j; }
+                for (i = 1; i <= a.length; i++) {
+                    for (j = 1; j <= b.length; j++) {
+                        tmp[i][j] = Math.min(tmp[i-1][j-1] + (a[i-1] === b[j-1] ? 0 : 1), Math.min(tmp[i-1][j] + 1, tmp[i][j-1] + 1));
+                    }
+                }
+                return tmp[a.length][b.length];
+            };
+            const normalize = (str) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,"");
+
+            const userText = normalize(text);
+            let bestMatch = null;
+            let bestScore = Infinity;
+
+            servicesList.forEach(service => {
+                // Prepare targets: Name and Keywords
+                const targets = [normalize(service.nom), normalize(service.keywords || '')];
+                
+                targets.forEach(target => {
+                    if (!target) return;
+                    
+                    // 1. Exact/Substring (Strongest)
+                    if (target.includes(userText) || userText.includes(target)) {
+                        bestMatch = service;
+                        bestScore = 0;
+                    }
+
+                    // 2. Token Fuzzy Match
+                    const serviceTokens = target.split(/\s+/);
+                    const userTokens = userText.split(/\s+/);
+
+                    // If user says "crédit consommation", and service is "crédit consommation", tokens match.
+                    // If user says "crédit", and service is "crédit consommation", we need at least one strong token match.
+                    
+                    let matchCount = 0;
+                    userTokens.forEach(uToken => {
+                        if (uToken.length < 3) return; // Skip "le", "de"
+                        
+                        serviceTokens.forEach(sToken => {
+                            if (sToken.length < 3) return;
+                            const dist = levenshtein(sToken, uToken);
+                            if (dist < 2) matchCount++;
+                        });
+                    });
+
+                    // Heuristic: If meaningful tokens match, it's a candidate
+                    if (matchCount > 0 && matchCount >= serviceTokens.length * 0.5) {
+                         // Check overall distance for tie-breaking
+                         const dist = levenshtein(target, userText);
+                         if (dist < bestScore) {
+                             bestScore = dist;
+                             bestMatch = service;
+                         }
+                    }
+                });
+            });
+            
+            if (bestMatch) {
+                state.data.service = bestMatch;
+                state.step = 'awaiting_date';
+                addMessage(`C'est noté pour "${bestMatch.nom}". Quelle date et heure vous conviendraient ? (Ex: Demain à 10h)`, 'bot');
+            } else {
+                addMessage("Je n'ai pas compris le service. Pouvez-vous répéter ? (Ex: Ouverture de compte, Crédit...)", 'bot');
+            }
+            return;
+        }
+
+        // 3. Date/Time Extraction (Regex Magic)
+        if (state.step === 'awaiting_date') {
+            let date = null;
+            let time = null;
+
+            if (text.includes('demain')) {
+                const d = new Date();
+                d.setDate(d.getDate() + 1);
+                date = d.toISOString().split('T')[0];
+            } else if (text.includes('aujourd\'hui')) {
+                date = new Date().toISOString().split('T')[0];
+            }
+
+            const timeMatch = text.match(/(\d{1,2})\s?h/);
+            if (timeMatch) {
+                let hour = parseInt(timeMatch[1]);
+                time = `${hour.toString().padStart(2, '0')}:00`;
+            }
+
+            if (!date) {
+                 const d = new Date();
+                d.setDate(d.getDate() + 1);
+                date = d.toISOString().split('T')[0]; // Default tomorrow
+            }
+
+            if (date && time) {
+                state.data.date = date;
+                state.data.time = time;
+                
+                addMessage(`Je vérifie la disponibilité pour le ${date} à ${time}...`, 'bot');
+                const avail = await checkAvailability(state.data.service.id, agencyId, date, time);
+                
+                if (avail.available) {
+                    state.data.guichet = avail.guichet;
+                    state.step = 'awaiting_confirm';
+                    addMessage(`Bonne nouvelle ! Le créneau de ${time} est libre. Souhaitez-vous confirmer le rendez-vous ?`, 'bot');
+                } else {
+                    addMessage(`Désolé, ce créneau n'est pas disponible (${avail.message}). Essayez une autre heure.`, 'bot');
+                }
+            } else {
+                addMessage("Je n'ai pas bien compris l'heure. Dites par exemple '14h' ou '10 heures'.", 'bot');
+            }
+            return;
+        }
+
+        // 4. Confirmation
+        if (state.step === 'awaiting_confirm') {
+            if (text.includes('oui') || text.includes('confirm') || text.includes('d\'accord')) {
+                addMessage("Parfait, je finalise la réservation...", 'bot');
+                const result = await bookRdv();
+                if (result.success) {
+                    addMessage("C'est fait ! Votre ticket est prêt. Je vous redirige...", 'bot');
+                    setTimeout(() => window.location.href = result.redirect_url, 2000);
+                    state.step = 'idle';
+                    state.data = {};
+                } else {
+                    addMessage("Une erreur est survenue.", 'bot');
+                }
+            } else {
+                addMessage("Annulé.", 'bot');
+                state.step = 'idle';
+            }
+            return;
+        }
+    }
+
+    async function checkAvailability(serviceId, agenceId, date, time) {
+        // Ensure agencyId is set (fallback to default if single agency logic failed)
+        if (!agenceId && agenciesList.length > 0) agenceId = agenciesList[0].id;
+
+        const res = await fetch('/client/ai/check-availability', {
+            method: 'POST',
+            body: JSON.stringify({ service_id: serviceId, agence_id: agenceId, date, time })
+        });
+        return await res.json();
+    }
+
+    async function bookRdv() {
+        if (!agencyId && agenciesList.length > 0) agencyId = agenciesList[0].id;
+
+        const res = await fetch('/client/ai/book', {
+            method: 'POST',
+            body: JSON.stringify({
+                service_id: state.data.service.id,
+                agence_id: agencyId,
+                date: state.data.date,
+                time: state.data.time,
+                guichet: state.data.guichet
+            })
+        });
+        return await res.json();
+    }
+});
+</script>

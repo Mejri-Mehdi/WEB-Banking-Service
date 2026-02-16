@@ -1,0 +1,115 @@
+{% extends 'back/base_agent.html.twig' %}
+
+{% block title %}Modifier service - Agent{% endblock %}
+
+{% block body %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2>Modifier le service</h2>
+        <p class="text-muted">{{ service.nomService }}</p>
+    </div>
+    <a href="{{ path('agent_service_index') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-2"></i>Retour
+    </a>
+</div>
+
+{% if service.adminFeedback %}
+    <div class="alert alert-warning d-flex align-items-center mb-4">
+        <i class="bi bi-exclamation-triangle-fill flex-shrink-0 me-2" style="font-size: 1.5rem;"></i>
+        <div>
+            <strong>Feedback de l'Administrateur :</strong>
+            <p class="mb-0">{{ service.adminFeedback }}</p>
+        </div>
+    </div>
+{% endif %}
+
+<div class="card">
+    <div class="card-body">
+        <form method="post" action="{{ path('agent_service_edit', {id: service.id}) }}">
+            <div class="mb-3">
+                <label for="nom_service" class="form-label"><strong>Nom du service *</strong></label>
+                <input type="text" class="form-control" id="nom_service" name="nom_service" required
+                       value="{{ service.nomService }}"
+                       placeholder="Ex: Ouverture de compte, Demande de crédit...">
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="categorie" class="form-label"><strong>Catégorie *</strong></label>
+                    <select class="form-select" id="categorie" name="categorie" required>
+                        <option value="Compte" {{ service.categorie == 'Compte' ? 'selected' : '' }}>Compte</option>
+                        <option value="Crédit" {{ service.categorie == 'Crédit' ? 'selected' : '' }}>Crédit</option>
+                        <option value="Epargne" {{ service.categorie == 'Epargne' ? 'selected' : '' }}>Epargne</option>
+                        <option value="Assurance" {{ service.categorie == 'Assurance' ? 'selected' : '' }}>Assurance</option>
+                        <option value="Autre" {{ service.categorie == 'Autre' ? 'selected' : '' }}>Autre</option>
+                    </select>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="priorite_defaut" class="form-label"><strong>Priorité *</strong></label>
+                    <select class="form-select" id="priorite_defaut" name="priorite_defaut" required>
+                        <option value="high" {{ service.prioriteDefaut == 'high' ? 'selected' : '' }}>Haute</option>
+                        <option value="medium" {{ service.prioriteDefaut == 'medium' ? 'selected' : '' }}>Moyenne</option>
+                        <option value="low" {{ service.prioriteDefaut == 'low' ? 'selected' : '' }}>Basse</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="description" class="form-label"><strong>Description du service *</strong></label>
+                <textarea class="form-control" id="description" name="description" rows="4" required
+                          placeholder="Décrivez le service en détail...">{{ service.description }}</textarea>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="duree_estimee" class="form-label"><strong>Durée estimée (minutes) *</strong></label>
+                    <input type="number" class="form-control" id="duree_estimee" name="duree_estimee" required min="5" step="5" value="{{ service.dureeEstimee }}">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="frais" class="form-label"><strong>Frais de dossier (DT)</strong></label>
+                    <input type="number" class="form-control" id="frais" name="frais" min="0" step="0.01" placeholder="0.00" value="{{ service.frais }}">
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="documents_requis" class="form-label"><strong>Documents requis *</strong></label>
+                <textarea class="form-control" id="documents_requis" name="documents_requis" rows="3" required
+                          placeholder="Ex: CIN, Fiche de paie... (Mettre 'Aucun' si vide)">{{ service.documentsRequis }}</textarea>
+            </div>
+
+            <div class="form-check form-switch mb-3">
+                <input class="form-check-input" type="checkbox" id="disponible" name="disponible" value="1" {{ service.disponible ? 'checked' : '' }}>
+                <label class="form-check-label" for="disponible">Service disponible immédiatement</label>
+            </div>
+            
+            <div class="d-flex gap-2 pt-3 border-top">
+                <a href="{{ path('agent_service_index') }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-x-circle me-2"></i>Annuler
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-circle me-2"></i>Enregistrer les modifications
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    .form-label {
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+        color: var(--dark-gray);
+    }
+    
+    .form-control {
+        border-radius: 8px;
+        border: 1px solid var(--border-gray);
+        padding: 0.625rem 0.875rem;
+    }
+    
+    .form-control:focus {
+        border-color: var(--secondary-blue);
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+</style>
+{% endblock %}

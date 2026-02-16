@@ -1,0 +1,73 @@
+<div class="table-responsive">
+    <table class="table table-hover align-middle">
+        <thead class="table-light">
+            <tr>
+                <th><i class="bi bi-bank"></i> Banque</th>
+                <th><i class="bi bi-person"></i> Client</th>
+                <th><i class="bi bi-briefcase"></i> Service</th>
+                <th><i class="bi bi-calendar3"></i> Date & Heure</th>
+                <th><i class="bi bi-info-circle"></i> Statut</th>
+                <th><i class="bi bi-gear"></i> Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for rdv in rendez_vous %}
+                <tr>
+                    <td>
+                        <div class="fw-bold">{{ rdv.banque.nomBq }}</div>
+                        <div class="small text-muted">{{ rdv.agence.nomAg }}</div>
+                    </td>
+                    <td>
+                        <div class="fw-bold">{{ rdv.client.fullName }}</div>
+                        <div class="small text-muted">{{ rdv.client.email }}</div>
+                    </td>
+                    <td>{{ rdv.service.nomService }}</td>
+                    <td>
+                        <div class="fw-bold">{{ rdv.dateRdv|date('d/m/Y') }}</div>
+                        <div class="text-primary">{{ rdv.heureRdv|date('H:i') }}</div>
+                    </td>
+                    <td>
+                        <span class="badge {{ rdv.statutBadge }}">{{ rdv.statutLabel }}</span>
+                    </td>
+                    <td>
+                        <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#rdvDetails{{ rdv.id }}">
+                            <i class="bi bi-eye"></i> Détails
+                        </button>
+                    </td>
+                </tr>
+
+                <!-- Details Modal -->
+                <div class="modal fade" id="rdvDetails{{ rdv.id }}" tabindex="-1">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Détails du Rendez-vous #{{ rdv.ticketReference }}</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <p><strong>Banque:</strong> {{ rdv.banque.nomBq }}</p>
+                                <p><strong>Agence:</strong> {{ rdv.agence.nomAg }} ({{ rdv.agence.adresseAg }})</p>
+                                <p><strong>Service:</strong> {{ rdv.service.nomService }}</p>
+                                <p><strong>Client:</strong> {{ rdv.client.fullName }} ({{ rdv.client.email }})</p>
+                                <p><strong>Date:</strong> {{ rdv.dateRdv|date('d/m/Y') }} à {{ rdv.heureRdv|date('H:i') }}</p>
+                                <p><strong>Statut:</strong> <span class="badge {{ rdv.statutBadge }}">{{ rdv.statutLabel }}</span></p>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <tr>
+                    <td colspan="6" class="text-center py-5">
+                        <div class="text-muted">
+                            <i class="bi bi-search h3 d-block mb-3"></i>
+                            Aucun rendez-vous trouvé
+                        </div>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>

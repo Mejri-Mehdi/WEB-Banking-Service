@@ -1,0 +1,88 @@
+{% extends 'back/base_agent.html.twig' %}
+
+{% block title %}Nouvelle Offre{% endblock %}
+
+{% block body %}
+<div class="mb-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ path('agent_dashboard') }}">Dashboard</a></li>
+            <li class="breadcrumb-item"><a href="{{ path('agent_offre_index') }}">Offres</a></li>
+            <li class="breadcrumb-item active">Nouvelle</li>
+        </ol>
+    </nav>
+    <h2 class="fw-bold">Créer une nouvelle offre</h2>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+                <form method="post">
+                    <div class="mb-4">
+                        <label for="titre" class="form-label fw-bold">Titre de l'offre *</label>
+                        <input type="text" name="titre" id="titre" class="form-control form-control-lg" required minlength="3" maxlength="255">
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="description" class="form-label fw-bold">Description</label>
+                        <textarea name="description" id="description" rows="3" class="form-control" required minlength="10"></textarea>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label for="type_offre" class="form-label fw-bold">Type d'offre</label>
+                            <select name="type_offre" id="type_offre" class="form-select">
+                                <option value="Crédit Consommation">Crédit Consommation</option>
+                                <option value="Crédit Immobilier">Crédit Immobilier</option>
+                                <option value="Epargne">Epargne</option>
+                                <option value="Compte Courant">Compte Courant</option>
+                                <option value="Carte Bancaire">Carte Bancaire</option>
+                                <option value="Assurance">Assurance</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="taux" class="form-label fw-bold">Taux d'intérêt (%)</label>
+                            <input type="number" name="taux" id="taux" class="form-control" step="0.01" min="0" placeholder="0.00">
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label for="montant_min" class="form-label fw-bold">Montant Min (DT)</label>
+                            <input type="number" name="montant_min" id="montant_min" class="form-control" step="100" min="0">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="montant_max" class="form-label fw-bold">Montant Max (DT)</label>
+                            <input type="number" name="montant_max" id="montant_max" class="form-control" step="100" min="0">
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label for="date_debut" class="form-label fw-bold">Date Début</label>
+                            <input type="date" name="date_debut" id="date_debut" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="date_fin" class="form-label fw-bold">Date Fin</label>
+                            <input type="date" name="date_fin" id="date_fin" class="form-control" required>
+                        </div>
+                    </div>
+
+                    <div class="form-check mb-4">
+                        <input class="form-check-input" type="checkbox" name="active" id="active" checked>
+                        <label class="form-check-label" for="active">
+                            Offre active immédiatement
+                        </label>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg">Créer l'offre</button>
+                        <a href="{{ path('agent_offre_index') }}" class="btn btn-outline-secondary">Annuler</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
