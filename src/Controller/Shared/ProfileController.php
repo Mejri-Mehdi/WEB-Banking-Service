@@ -18,12 +18,25 @@ use Symfony\Component\String\Slugger\SluggerInterface;
 class ProfileController extends AbstractController
 {
     #[Route('/', name: 'app_profile_view')]
-    public function view(): Response
+    public function view(\App\Service\QrCodeService $qrCodeService): Response
     {
         $user = $this->getUser();
         
+        // Generate vCard for QR Code
+        $vCard = "BEGIN:VCARD\nVERSION:3.0\n";
+        $vCard .= "FN:" . $user->getFullName() . "\n";
+        $vCard .= "EMAIL:" . $user->getEmail() . "\n";
+        if ($user->getTelephone()) {
+            $vCard .= "TEL:" . $user->getTelephone() . "\n";
+        }
+        $vCard .= "ROLE:" . implode(', ', $user->getRoles()) . "\n";
+        $vCard .= "END:VCARD";
+
+        $qrCode = $qrCodeService->generateQrCode($vCard);
+        
         return $this->render('shared/profile/view.html.twig', [
             'user' => $user,
+            'qrCode' => $qrCode,
         ]);
     }
 

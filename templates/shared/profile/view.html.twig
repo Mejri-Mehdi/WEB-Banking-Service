@@ -45,6 +45,8 @@
                                 </div>
                             {% endif %}
                             
+
+                            
                             <h4 class="mb-1">{{ user.nom }} {{ user.prenom }}</h4>
                             <p class="text-muted mb-3">
                                 {% if isAdmin %}
@@ -63,6 +65,11 @@
                                 <a href="{{ path('app_profile_settings') }}" class="btn btn-outline-secondary btn-sm">
                                     <i class="bi bi-gear me-2"></i>Paramètres
                                 </a>
+                                {% if qrCode is defined %}
+                                    <button type="button" class="btn btn-outline-dark btn-sm" data-bs-toggle="modal" data-bs-target="#qrCodeModal">
+                                        <i class="bi bi-qr-code me-2"></i>Mon QR Code
+                                    </button>
+                                {% endif %}
                             </div>
                         </div>
                     </div>
@@ -146,6 +153,26 @@
         </div>
     </div>
 </div>
+
+<!-- QR Code Modal -->
+{% if qrCode is defined %}
+<div class="modal fade" id="qrCodeModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center pt-0 pb-4">
+                <h5 class="modal-title mb-3 fw-bold">Mon QR Code</h5>
+                <div class="p-3 bg-light rounded-3 d-inline-block">
+                    <img src="{{ qrCode }}" alt="QR Code" class="img-fluid" style="width: 200px; height: 200px;">
+                </div>
+                <p class="text-muted small mt-3 mb-0">Scannez pour partager vos coordonnées</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
 
 <style>
     .card {

@@ -498,7 +498,7 @@
                 <p class="subtitle-text">Rejoignez la communauté Beeline Banking dès aujourd'hui</p>
             </div>
 
-            <form method="post">
+            <form method="post" enctype="multipart/form-data">
             
             <div class="form-section-title">
                 <i class="bi bi-person-badge-fill"></i> Type de compte
@@ -506,7 +506,7 @@
             
             <div class="role-selector">
                 <label class="role-option">
-                    <input type="radio" name="role" value="client" checked>
+                    <input type="radio" name="role" value="client" {% if app.request.get('role') == 'client' or not app.request.get('role') %}checked{% endif %}>
                     <div class="role-card">
                         <div class="role-icon">👤</div>
                         <div class="role-name">Client</div>
@@ -514,7 +514,7 @@
                     </div>
                 </label>
                 <label class="role-option">
-                    <input type="radio" name="role" value="agent">
+                    <input type="radio" name="role" value="agent" {% if app.request.get('role') == 'agent' %}checked{% endif %}>
                     <div class="role-card">
                         <div class="role-icon">💼</div>
                         <div class="role-name">Agent Bancaire</div>
@@ -531,25 +531,45 @@
                 <div class="col-md-6">
                     <div class="form-group">
                         <label class="form-label">Nom <span class="required-star">*</span></label>
-                        <input type="text" name="nom" class="form-control" placeholder="Votre nom" required>
+                        <input type="text" name="nom" class="form-control" placeholder="Votre nom" required value="{{ app.request.get('nom') }}">
                     </div>
                 </div>
                 <div class="col-md-6">
                     <div class="form-group">
                         <label class="form-label">Prénom <span class="required-star">*</span></label>
-                        <input type="text" name="prenom" class="form-control" placeholder="Votre prénom" required>
+                        <input type="text" name="prenom" class="form-control" placeholder="Votre prénom" required value="{{ app.request.get('prenom') }}">
                     </div>
                 </div>
             </div>
 
             <div class="form-group">
                 <label class="form-label">Email <span class="required-star">*</span></label>
-                <input type="email" name="email" class="form-control" placeholder="votre.email@exemple.com" required>
+                <input type="email" name="email" class="form-control" placeholder="votre.email@exemple.com" required value="{{ app.request.get('email') }}">
             </div>
 
             <div class="form-group">
                 <label class="form-label">Téléphone <span class="required-star">*</span></label>
-                <input type="tel" name="telephone" class="form-control" placeholder="+216 XX XXX XXX" required>
+                <input type="tel" name="telephone" class="form-control" placeholder="2X XXX XXX (8 chiffres)" required pattern="[0-9]{8}" title="Le numéro de téléphone doit contenir 8 chiffres" value="{{ app.request.get('telephone') }}">
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="form-label">CIN <span class="required-star">*</span></label>
+                        <input type="text" name="cin" class="form-control" placeholder="Numéro CIN (8 chiffres)" required maxlength="8" pattern="[0-9]{8}" title="Le CIN doit contenir 8 chiffres" value="{{ app.request.get('cin') }}">
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="form-label">Code Postal <span class="required-star">*</span></label>
+                        <input type="text" name="code_postal" class="form-control" placeholder="Code Postal (4 chiffres)" required maxlength="4" pattern="[0-9]{4}" title="Le code postal doit contenir 4 chiffres" value="{{ app.request.get('code_postal') }}">
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Adresse <span class="required-star">*</span></label>
+                <textarea name="adresse" class="form-control" rows="2" placeholder="Votre adresse complète" required>{{ app.request.get('adresse') }}</textarea>
             </div>
 
             <div class="form-group" id="clientBankSelection">
@@ -557,7 +577,7 @@
                 <select name="banque" id="banque_select" class="form-select" required>
                     <option value="">-- Sélectionnez une banque --</option>
                     {% for banque in banques %}
-                        <option value="{{ banque.id }}">{{ banque.nomBq }}</option>
+                        <option value="{{ banque.id }}" {% if app.request.get('banque') == banque.id %}selected{% endif %}>{{ banque.nomBq }}</option>
                     {% endfor %}
                 </select>
             </div>

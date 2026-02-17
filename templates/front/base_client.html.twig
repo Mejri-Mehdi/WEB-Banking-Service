@@ -147,6 +147,13 @@
             align-items: center;
             justify-content: center;
             font-weight: 600;
+            overflow: hidden;
+        }
+        
+        .user-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
         
         .content-wrapper {
@@ -259,7 +266,11 @@
                     <div class="dropdown">
                         <button class="btn btn-link text-decoration-none p-0 d-flex align-items-center gap-2" type="button" id="profileDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                             <div class="user-avatar">
-                                <i class="bi bi-person"></i>
+                                {% if app.user.photo %}
+                                    <img src="{{ asset('uploads/profiles/' ~ app.user.photo) }}" alt="Profile">
+                                {% else %}
+                                    <i class="bi bi-person"></i>
+                                {% endif %}
                             </div>
                             <div class="text-start">
                                 <div style="font-weight: 600; color: var(--dark-gray); font-size: 0.9rem;">{{ app.user.nom }} {{ app.user.prenom }}</div>

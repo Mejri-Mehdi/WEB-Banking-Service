@@ -37,10 +37,13 @@ class RegistrationController extends AbstractController
             }
 
             $user = new Utilisateur();
-            $user->setEmail($request->request->get('email'));
-            $user->setNom($request->request->get('nom'));
-            $user->setPrenom($request->request->get('prenom'));
-            $user->setTelephone($request->request->get('telephone'));
+            $user->setEmail(trim($request->request->get('email')));
+            $user->setNom(trim($request->request->get('nom')));
+            $user->setPrenom(trim($request->request->get('prenom')));
+            $user->setTelephone(trim($request->request->get('telephone')));
+            $user->setCin(trim($request->request->get('cin')));
+            $user->setAdresse(trim($request->request->get('adresse')));
+            $user->setCodePostal(trim($request->request->get('code_postal')));
             
             // Hash password
             $hashedPassword = $passwordHasher->hashPassword(
@@ -48,6 +51,11 @@ class RegistrationController extends AbstractController
                 $plainPassword
             );
             $user->setPassword($hashedPassword);
+
+            // Create default Profile
+            $profile = new \App\Entity\Profile();
+            $user->setProfile($profile);
+            $entityManager->persist($profile);
 
             // Determine role
             $role = $request->request->get('role', 'client');
@@ -68,8 +76,16 @@ class RegistrationController extends AbstractController
                     $bankName = $bankNameSelect;
                 }
                 
+                // Handle file upload
+                $documents = $request->files->get('bank_documents');
+                $documentPaths = [];
+                if ($documents) {
+                    // Basic file upload handling could go here
+                    // For now we just note that documents were provided
+                    // In a real app, you'd move the file and store the path
+                }
+
                 // Store all bank details for admin review
-                // Admin will decide if bank exists or needs to be created
                 $bankDetails = [
                     'bank_name' => $bankName,
                     'agent_identifiant' => $request->request->get('agent_identifiant'),
@@ -77,17 +93,10 @@ class RegistrationController extends AbstractController
                     'bank_type' => $request->request->get('bank_type'),
                     'bank_address' => $request->request->get('bank_address'),
                     'bank_postal_code' => $request->request->get('bank_postal_code'),
+                    'has_documents' => $documents ? true : false,
                 ];
                 
-                // Handle file upload if documents provided
-                $documents = $request->files->get('bank_documents');
-                // TODO: Store documents (implement file upload handling)
-                
-                // Store bank data as JSON for admin to review
-                // Note: You'll need to add a 'pending_bank_data' TEXT field to Utilisateur entity
-                // For now, we're just capturing the data
-                
-                // Don't set banque for agents - admin will do this on approval
+                $user->setPendingBankData($bankDetails);
                 
             } else {
                 $user->setRoles(['ROLE_CLIENT']);

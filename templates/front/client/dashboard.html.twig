@@ -56,7 +56,9 @@
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
                         <p style="color: var(--medium-gray); margin-bottom: 0.5rem; font-size: 0.875rem; font-weight: 600;">Ma Banque</p>
-                        <h3 style="color: var(--dark-gray); font-weight: 700; margin: 0; font-size: 1.2rem;">{{ app.user.banque.nomBq }}</h3>
+                        <h3 style="color: var(--dark-gray); font-weight: 700; margin: 0; font-size: 1.2rem;">
+                            {{ app.user.banque ? app.user.banque.nomBq : 'Aucune banque' }}
+                        </h3>
                     </div>
                     <div style="width: 48px; height: 48px; background: var(--light-blue); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
                         <i class="bi bi-building" style="font-size: 1.5rem; color: var(--primary-blue);"></i>

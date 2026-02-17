@@ -72,4 +72,21 @@ class UtilisateurRepository extends ServiceEntityRepository implements PasswordU
             ->getQuery()
             ->getResult();
     }
+    public function save(Utilisateur $entity, bool $flush = false): void
+    {
+        $this->getEntityManager()->persist($entity);
+
+        if ($flush) {
+            $this->getEntityManager()->flush();
+        }
+    }
+
+    public function remove(Utilisateur $entity, bool $flush = false): void
+    {
+        $this->getEntityManager()->remove($entity);
+
+        if ($flush) {
+            $this->getEntityManager()->flush();
+        }
+    }
 }

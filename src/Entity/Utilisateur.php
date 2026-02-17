@@ -64,10 +64,41 @@ class Utilisateur implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToOne(mappedBy: 'utilisateur', cascade: ['persist', 'remove'])]
     private ?Profile $profile = null;
 
+    #[ORM\Column(nullable: true)]
+    private ?array $pendingBankData = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $resetToken = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?\DateTimeImmutable $resetTokenExpiresAt = null;
+
     public function __construct()
     {
         $this->rendezVous = new ArrayCollection();
         $this->financements = new ArrayCollection();
+    }
+
+    public function getResetToken(): ?string
+    {
+        return $this->resetToken;
+    }
+
+    public function setResetToken(?string $resetToken): static
+    {
+        $this->resetToken = $resetToken;
+        return $this;
+    }
+
+    public function getResetTokenExpiresAt(): ?\DateTimeImmutable
+    {
+        return $this->resetTokenExpiresAt;
+    }
+
+    public function setResetTokenExpiresAt(?\DateTimeImmutable $resetTokenExpiresAt): static
+    {
+        $this->resetTokenExpiresAt = $resetTokenExpiresAt;
+        return $this;
     }
 
     public function getId(): ?int
@@ -313,6 +344,17 @@ class Utilisateur implements UserInterface, PasswordAuthenticatedUserInterface
 
         $this->profile = $profile;
 
+        return $this;
+    }
+
+    public function getPendingBankData(): ?array
+    {
+        return $this->pendingBankData;
+    }
+
+    public function setPendingBankData(?array $pendingBankData): static
+    {
+        $this->pendingBankData = $pendingBankData;
         return $this;
     }
 }

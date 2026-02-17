@@ -92,7 +92,7 @@
     </div>
 
     <div class="col-md-6 mb-4">
-        <div class="card">
+        <div class="card h-100">
             <div class="card-header bg-white">
                 <h5 class="mb-0">Banques en attente d'approbation</h5>
             </div>
@@ -121,6 +121,72 @@
         </div>
     </div>
 </div>
+
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card shadow h-100">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Répartition des Utilisateurs</h6>
+            </div>
+            <div class="card-body">
+                <div class="chart-pie pt-4 pb-2">
+                    <canvas id="myPieChart"></canvas>
+                </div>
+                <div class="mt-4 text-center small">
+                    <span class="mr-2">
+                        <i class="fas fa-circle text-primary"></i> Clients
+                    </span>
+                    <span class="mr-2">
+                        <i class="fas fa-circle text-info"></i> Agents
+                    </span>
+                    <span class="mr-2">
+                        <i class="fas fa-circle text-danger"></i> Admins
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <!-- Additional stats or another chart could go here -->
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    var ctx = document.getElementById("myPieChart");
+    var myPieChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ["Clients", "Agents", "Admins"],
+            datasets: [{
+                data: [{{ stats.total_clients }}, {{ stats.total_agents }}, {{ stats.total_users - stats.total_clients - stats.total_agents }}],
+                backgroundColor: ['#4e73df', '#36b9cc', '#e74a3b'],
+                hoverBackgroundColor: ['#2e59d9', '#2c9faf', '#e74a3b'],
+                hoverBorderColor: "rgba(234, 236, 244, 1)",
+            }],
+        },
+        options: {
+            maintainAspectRatio: false,
+            tooltips: {
+                backgroundColor: "rgb(255,255,255)",
+                bodyFontColor: "#858796",
+                borderColor: '#dddfeb',
+                borderWidth: 1,
+                xPadding: 15,
+                yPadding: 15,
+                displayColors: false,
+                caretPadding: 10,
+            },
+            legend: {
+                display: false
+            },
+            cutoutPercentage: 80,
+        },
+    });
+});
+</script>
 
 <div class="row">
     <div class="col-md-12">
